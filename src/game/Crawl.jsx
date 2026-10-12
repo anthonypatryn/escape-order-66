@@ -3,6 +3,7 @@ import { loadMusic, playMusic } from './sound';
 import { hold as holdMusic } from './music';
 
 // The start of every game, timed to the owner's recording (public/sfx/crawl.mp3) the way the films do it:
+// (the story = the owner's rulebook intro + the game's own lines, combined by the owner 2026-10-12)
 // a blue line of text in silence → the opening hit + the logo, which recedes into the stars → the story crawls away →
 // the music softens and the camera tilts down: stars (three layers), two moons and a planet's horizon rise past at
 // different speeds (parallax), then the Galaxy rises over the planet (GameView .panning).
@@ -75,10 +76,10 @@ export default function Crawl({ players, onPan, onDone }) {
           <div className="crawl-text" style={{ '--crawl': `${CRAWL_S}s`, '--crawl-delay': `${CRAWL_AT - HIT}s` }}>
             <p className="crawl-ep">Episode LXVI</p>
             <h2>The Hunted Padawan</h2>
-            <p>The war is over, and a darker order has been given. Across the galaxy the clones have turned their blasters on the Jedi who led them.</p>
-            <p>AHSOKA TANO, once the apprentice of Anakin Skywalker, slips between the stars with the Empire close behind. To survive she needs help: friends, rivals, and even old enemies from every faction.</p>
-            <p>Bounty hunters sell her trail to the highest bidder. Sith witches of Dathomir watch from the shadows. Somewhere, a squad of defective clones has refused to follow orders….</p>
-            <p>Two strategists, {a} and {b}, race to guide her escape. Whoever wins the loyalty of the most factions will decide the fate of the last free Jedi….</p>
+            <p>The Clone Wars are over, and a darker order has been given. Across the galaxy, the clones have turned their blasters on the Jedi who led them. The few who survive are scattered and in hiding.</p>
+            <p>AHSOKA TANO, former Padawan of Anakin Skywalker, wanders alone, marked for extermination by Order 66. As the Empire’s grip tightens, her survival depends on staying one step ahead of the relentless pursuit.</p>
+            <p>To escape, she will need the help of friends — and some enemies. Bounty hunters, the witches of Dathomir, and a squad of defective clones who refused their orders all have a part to play….</p>
+            <p>Now two strategists, {a} and {b}, race to guide her across the galaxy. Whoever wins the loyalty of the most factions will decide whether the last free Jedi can outmaneuver the Empire and escape the clutches of Order 66….</p>
           </div>
         </div>
       )}
