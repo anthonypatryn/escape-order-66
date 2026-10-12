@@ -13,12 +13,12 @@ Several clips for one sound = one picked at random. A sound with no file stays s
 
 | Sound | When |
 |---|---|
-| `saber` | Ahsoka moves (length follows her glide) |
+| `saber` | Ahsoka moves — owner's clips `saber-a/b/c.mp3` (random) |
 | `take` | a card lands in a play area |
-| `kill` | a character or companion is killed |
+| `kill` | a character or companion is killed — owner's clips `kill-a/b/c.mp3` (random) |
 | `banner` | a banner changes hands (`down` = back to the middle) |
 | `encounter` | an encounter is played |
-| `swap` | Satine switches two cards |
+| `swap` | Satine switches two cards — owner's clip `swap.mp3` |
 | `turn` | your move |
 | `crawl.mp3` | the opening crawl music (owner's file; Crawl.jsx times the logo / crawl / tilt-down to it) |
 | `hyper` | not used any more (the crawl ends with a tilt down now) |

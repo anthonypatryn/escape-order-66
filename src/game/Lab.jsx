@@ -4,6 +4,7 @@ import { Game } from './engine';
 import { ENCOUNTERS, CHAR, FACTIONS, AHSOKA } from '../data/cards';
 import { legalMoves } from './rules';
 import { LEVELS } from './ai';
+import { useSounds } from './useGame';
 
 // /?view=lab — the debug lab (like Long Shot's /?view=moments): the real game screen on a game that only moves when
 // you push it. Play one turn at a time, fire any encounter, kill / take / swap cards, flip banners, jump to the end,
@@ -19,6 +20,7 @@ export default function Lab() {
   const [msg, setMsg] = useState('');
   const game = useMemo(() => new Game({ seed, players: seats }, { onChange: setState }), [seed, n]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { setState({ ...game.state }); return () => game.stop(); }, [game]);
+  useSounds(state); // the lab plays the game's sounds too (for checking new clips)
   useEffect(() => { setN((x) => x + 1); setMsg(''); }, [seats]);
   if (!state) return null;
   const g = game, s = state, cur = s.players[s.turn];

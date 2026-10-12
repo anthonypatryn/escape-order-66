@@ -4,7 +4,13 @@
 import { settings } from './prefs';
 
 const FILES = {
-  order66: [['order66', 0, 6.56, 1, 0.4]], // owner's clip: plays as the camera lands on the Galaxy after the crawl
+  order66: [['order66', 0, 6.56, 1, 0.4]],
+  // Ahsoka moves: one of the owner's three saber clips at random (leading silence trimmed)
+  saber: [['saber-a', 0.06, 0.75, 1, 0.15], ['saber-b', 0.07, 0.85, 1, 0.15], ['saber-c', 0, 0.8, 1, 0.15]],
+  // a character is killed: one of the owner's three blasters at random (these are ~2× louder than the sabers: levelled down)
+  // Satine switches two cards (owner's clip; loud, so levelled down)
+  swap: [['swap', 0.03, 1.5, 0.55, 0.2]],
+  kill: [['kill-a', 0, 0.78, 0.5, 0.12], ['kill-b', 0.21, 0.9, 0.5, 0.15], ['kill-c', 0, 1.3, 0.5, 0.3]], // owner's clip: plays as the camera lands on the Galaxy after the crawl
   // saber: [['saber-swing', 0, 1.2, 1, 0.2]],
 };
 // mixer channels (Settings → Sound)
