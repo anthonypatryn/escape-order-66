@@ -1,0 +1,16 @@
+node_modules
+dist
+*.local
+.DS_Store
+.vscode/*
+.idea
+
+# the owner's print files (PDFs, InDesign, Illustrator); web copies live in public/art via tools/art.py
+/ART/
+encounter-deck-sheet.jpg
+
+# local bug reports in dev
+.data/
+.vercel
+.env*
+__pycache__/

@@ -1,0 +1,78 @@
+/* =================== Phone layout (GameView adds .phone, plus .land when the phone is sideways) ===================
+   As Long Shot: the Galaxy fills the screen, the question docks under it, Banners & encounters / Players / Log are sheets
+   from the bottom nav, everything else lives in the ⋯ menu. */
+.game.phone { --nav-bg: #070b14; position: fixed; top: 0; left: 0; right: 0; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); }
+.game.phone .game-top { flex-wrap: nowrap; gap: 8px; padding: 5px 8px 5px 12px; min-height: 46px; }
+.game.phone .game-turn { flex: 1; min-width: 0; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.game.phone .game-turn small { font-weight: 500; opacity: .7; }
+.top-score { display: flex; gap: 6px; font-family: var(--title); font-weight: 900; font-size: 22px; }
+.top-score b + b::before { content: '–'; color: var(--tx-dim); margin-right: 6px; font-weight: 600; }
+.game.phone .game-top .menu-btn { flex: none; width: 44px; height: 38px; padding: 0 0 6px; font-size: 26px; line-height: 1; }
+
+.game.phone .game-main { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.game.phone .game-board { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.game.phone .galaxy-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 8px 0; container-type: size; }
+.game.phone .galaxy { width: min(100cqw - 16px, 100cqh - 64px); }
+.game.phone .galaxy::before { inset: -6px; }
+.banner-strip { display: flex; gap: 4px; justify-content: center; }
+.banner-strip > span { display: grid; justify-items: center; gap: 1px; padding: 2px 3px 1px; border-radius: 8px; box-shadow: inset 0 -3px 0 var(--hc); }
+.banner-strip small { font-family: var(--title); font-weight: 800; font-size: 11px; color: var(--tx-dim); }
+.game.phone:not(.land) .prompt-dock { position: static; padding: 6px 8px; max-height: 48dvh; overflow-y: auto; pointer-events: auto; background: #080d18; box-shadow: 0 -6px 18px rgba(0, 0, 0, .45); z-index: 55; }
+.game.phone:not(.land) .prompt-dock:empty { display: none; }
+.game.phone .prompt { width: 100%; padding: 8px 10px; }
+.game.phone .prompt.tall { position: static; max-height: none; width: 100%; }
+.game.phone .dir-groups { grid-template-columns: 1fr 1fr; }
+.game.phone .mp-head .note { display: none; }
+.game.phone .mp-foot { flex-wrap: wrap; }
+.game.phone .mp-foot .primary { min-height: 44px; flex: 1; }
+.game.phone .fchip img { width: 34px; height: 30px; }
+.game.phone .enc-choices { gap: 8px; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; padding-bottom: 4px; }
+.game.phone .enc-choice { width: 116px; flex: none; }
+.game.phone .faction-pick { grid-template-columns: repeat(4, 1fr); }
+.game.phone .your-turn { font-size: 30px; }
+.game.phone .callout { top: 6%; font-size: 15px; }
+.game.phone .callout .banner { width: 40px !important; height: 35px !important; }
+.game .end-reopen { right: 12px; }
+
+.phone-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; flex: none; background: var(--nav-bg); padding: 2px 4px max(4px, calc(env(safe-area-inset-bottom) - 16px)); box-shadow: inset 0 1px 0 var(--glass-line); z-index: 56; }
+.game .phone-nav button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 48px; padding: 3px 0; background: transparent; box-shadow: none; color: var(--tx-dim); font-size: 12px; font-weight: 600; border-radius: 12px; }
+.game .phone-nav button.on { color: #fff; background: rgba(255, 255, 255, .1); }
+.nav-badge { position: absolute; top: 2px; left: calc(50% + 5px); min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center; background: #1660d0; color: #fff; font-size: 12px; }
+.nav-dot { position: absolute; top: 4px; right: calc(50% + 9px); width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: blink 1s infinite; }
+
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 84%; z-index: 50; display: flex; flex-direction: column; color: var(--tx); border-radius: 18px 18px 0 0;
+  background: rgba(8, 12, 22, .97); backdrop-filter: var(--blur); box-shadow: 0 -10px 40px rgba(0, 0, 0, .6), inset 0 1px 0 var(--glass-line); animation: sheetup .26s cubic-bezier(.2, .9, .3, 1); }
+.sheet.side { top: 0; left: auto; width: min(440px, 56%); max-height: none; border-radius: 16px 0 0 16px; animation: slidein .26s ease-out; padding-top: env(safe-area-inset-top); }
+@keyframes sheetup { from { transform: translateY(100%); } }
+.sheet-head { position: relative; display: flex; align-items: center; gap: 10px; padding: 16px 12px 8px 16px; flex: none; }
+.sheet-grip { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); width: 42px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .28); }
+.sheet-head h2 { margin: 0; flex: 1; font-size: 18px; color: var(--gold); }
+.game .sheet-x { flex: none; width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 16px; }
+.sheet-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px calc(14px + env(safe-area-inset-bottom)); }
+.sheet-encounters { display: grid; gap: 14px; }
+.sheet .enc-grid { grid-template-columns: repeat(3, 1fr); }
+.sheet .glog { max-height: none; }
+.sheet .pc-thumb { width: 36px !important; height: 36px !important; }
+
+.phone-menu .drawer-body { display: grid; gap: 14px; align-content: start; }
+.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.menu-grid button { min-height: 48px; font-size: 16px; }
+
+.game.phone.land .game-top { min-height: 38px; padding-top: 3px; padding-bottom: 3px; }
+.game.phone.land .game-main { flex-direction: row; }
+.game.phone.land .phone-nav { grid-template-columns: none; grid-auto-rows: 1fr; width: 66px; padding: 4px calc(4px + env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) 4px; }
+.game.phone.land .phone-nav button { min-height: 0; font-size: 10px; }
+.game.phone.land .game-board { flex-direction: row; }
+.game.phone.land .prompt-dock { position: relative; width: 46%; padding: 6px; align-items: center; overflow-y: auto; }
+.game.phone.land .banner-strip { display: none; }
+
+@media (max-width: 480px) {
+  .home-card { padding: 20px 14px; }
+  .seat-list .seg button { padding: 7px 9px; }
+  .seat-list input { font-size: 16px; }
+  .home button.lvl-pick, .lvl-pick, .seat-lvl-none { width: 108px; font-size: 12.5px; }
+  .home-actions .big { flex: 1; }
+}
+html.page-lock, html.page-lock body { overflow: hidden; overscroll-behavior: none; background: #070b14; }
+.drawer-head { padding-top: calc(14px + env(safe-area-inset-top)); }
+.modal, .lightbox { padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left)); }

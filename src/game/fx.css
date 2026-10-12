@@ -1,0 +1,163 @@
+/* =================== Moments: stars, saber trails, flying cards, blaster bursts, holograms, crawl, hyperspace, the end =================== */
+@keyframes blink { 50% { opacity: .3; } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes pop2 { from { transform: scale(.85); opacity: 0; } }
+@keyframes rise { from { transform: translateY(10px); opacity: 0; } }
+@keyframes slidein { from { transform: translateX(100%); } }
+@keyframes pushin { from { transform: scale(1.02); } to { transform: scale(1.12) translate(-1%, 1%); } }
+@keyframes floaty { 50% { transform: translateY(-8px); } }
+@keyframes logIn { from { opacity: 0; transform: translateX(-6px); } }
+@keyframes targetpulse { 0%, 100% { box-shadow: 0 0 0 2px var(--fc), 0 0 10px var(--fc); } 50% { box-shadow: 0 0 0 3px var(--fc), 0 0 26px var(--fc); } }
+@keyframes ahsokaglow { 0%, 100% { box-shadow: 0 0 0 2px var(--saber), 0 0 16px rgba(102, 204, 255, .6); } 50% { box-shadow: 0 0 0 3px var(--saber-hot), 0 0 34px rgba(102, 204, 255, .95); } }
+
+/* ---------- starfield (three layers drifting at different speeds) ---------- */
+.stars { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.home .stars { position: fixed; z-index: 1; }
+.stars i { position: absolute; inset: -50% -10%; background-repeat: repeat; animation: drift linear infinite; }
+.stars i:nth-child(1) { background-image: radial-gradient(1px 1px at 20px 30px, #fff, transparent), radial-gradient(1px 1px at 120px 80px, #cfe6ff, transparent), radial-gradient(1px 1px at 200px 160px, #fff, transparent), radial-gradient(1px 1px at 60px 190px, #ffe9c9, transparent); background-size: 240px 240px; opacity: .5; animation-duration: 240s; }
+.stars i:nth-child(2) { background-image: radial-gradient(1.5px 1.5px at 50px 100px, #fff, transparent), radial-gradient(1.5px 1.5px at 300px 40px, #bfe0ff, transparent), radial-gradient(1.5px 1.5px at 180px 280px, #fff, transparent); background-size: 380px 380px; opacity: .6; animation-duration: 160s; }
+.stars i:nth-child(3) { background-image: radial-gradient(2px 2px at 140px 220px, #fff, transparent), radial-gradient(2px 2px at 420px 120px, #9fd4ff, transparent); background-size: 520px 520px; opacity: .7; animation-duration: 110s; animation-name: drift, twinkle; animation-duration: 110s, 4s; animation-timing-function: linear, ease-in-out; animation-iteration-count: infinite; }
+@keyframes drift { to { transform: translateY(25%); } }
+@keyframes twinkle { 50% { opacity: .35; } }
+
+/* ---------- the deal (start of a game): cards flip in, corner to corner ---------- */
+.galaxy.dealing .cell { animation: dealin .5s cubic-bezier(.2, 1.3, .4, 1) both; animation-delay: var(--deal); }
+.galaxy.dealing .ahsoka-piece { animation: dealin .7s cubic-bezier(.2, 1.4, .4, 1) .9s both; }
+@keyframes dealin { from { transform: translateY(-40px) rotateX(80deg) scale(.6); opacity: 0; } }
+
+/* ---------- Ahsoka's saber trail along her path ---------- */
+.saber-trail { --cell: calc((100% - 5 * var(--gap)) / 6); position: absolute; z-index: 9; pointer-events: none; border-radius: 99px;
+  background: linear-gradient(90deg, rgba(102, 204, 255, 0), var(--saber) 30%, var(--saber-hot) 50%, var(--saber) 70%, rgba(102, 204, 255, 0));
+  box-shadow: 0 0 12px var(--saber), 0 0 30px rgba(102, 204, 255, .6);
+  animation: trail var(--ms) cubic-bezier(.55, 0, .25, 1) forwards, trailfade .5s ease-out var(--ms) forwards; }
+.saber-trail.h { height: 6px; left: calc(var(--c) * (var(--cell) + var(--gap)) + var(--cell) / 2); top: calc(var(--r) * (var(--cell) + var(--gap)) + var(--cell) / 2 - 3px); width: calc(var(--len) * (var(--cell) + var(--gap))); transform-origin: left center; }
+.saber-trail.h.rev { transform-origin: right center; }
+.saber-trail.v { width: 6px; left: calc(var(--c) * (var(--cell) + var(--gap)) + var(--cell) / 2 - 3px); top: calc(var(--r) * (var(--cell) + var(--gap)) + var(--cell) / 2); height: calc(var(--len) * (var(--cell) + var(--gap))); transform-origin: center top;
+  background: linear-gradient(180deg, rgba(102, 204, 255, 0), var(--saber) 30%, var(--saber-hot) 50%, var(--saber) 70%, rgba(102, 204, 255, 0)); }
+.saber-trail.v.rev { transform-origin: center bottom; }
+.saber-trail.h { animation-name: trailx, trailfade; } .saber-trail.v { animation-name: traily, trailfade; }
+@keyframes trailx { from { transform: scaleX(0); } }
+@keyframes traily { from { transform: scaleY(0); } }
+@keyframes trailfade { to { opacity: 0; } }
+
+/* ---------- cards leaving the Galaxy ---------- */
+/* taken: stays in place until Ahsoka passes it, then pops (and a flier carries it to the play area) */
+.cell.ghost-take .ccard { animation: ghostpop .25s ease-in var(--gd, 0ms) forwards; box-shadow: 0 0 0 2px var(--fc), 0 0 18px var(--fc); }
+@keyframes ghostpop { to { transform: scale(1.15); opacity: 0; } }
+/* killed: blaster-red flash, a shake, then it burns away */
+.cell.ghost-kill { z-index: 4; }
+.cell.ghost-kill .ccard { animation: killed .85s ease-in forwards; }
+.cell.ghost-kill::after { content: ''; position: absolute; inset: -10%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 90, 70, .9), rgba(255, 40, 30, .3) 40%, transparent 70%); animation: killflash .7s ease-out forwards; pointer-events: none; }
+@keyframes killed {
+  0% { filter: none; transform: none; }
+  15% { filter: brightness(2.2) sepia(1) hue-rotate(-30deg) saturate(4); transform: translateX(-4%) rotate(-3deg); }
+  30% { transform: translateX(4%) rotate(3deg); }
+  45% { transform: translateX(-2%); filter: grayscale(1) brightness(.6); }
+  100% { transform: scale(.6) rotate(10deg); opacity: 0; filter: grayscale(1) brightness(.2) blur(2px); }
+}
+@keyframes killflash { from { transform: scale(.3); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
+
+/* ---------- fliers: cards and banners flying across the screen ---------- */
+.fliers { position: fixed; inset: 0; z-index: 55; pointer-events: none; }
+.flier { position: absolute; left: 0; top: 0; will-change: transform; }
+.flier.card { border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 2px var(--tint, #fff), 0 0 20px var(--tint, #fff), 0 12px 24px rgba(0, 0, 0, .6); }
+.flier.card img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- bursts: a blaster bolt's impact ---------- */
+.bursts { position: fixed; inset: 0; z-index: 56; pointer-events: none; }
+.burst { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; }
+.burst.blast { background: #fff; box-shadow: 0 0 20px 10px #ff5a46, 0 0 50px 24px rgba(255, 60, 40, .6); animation: blast .6s ease-out forwards; }
+.burst.blast::before { content: ''; position: absolute; left: -200px; top: 3px; width: 200px; height: 4px; border-radius: 4px; background: linear-gradient(90deg, transparent, #ff6a50, #fff); box-shadow: 0 0 10px #ff3020; animation: bolt .18s ease-in forwards; }
+@keyframes blast { 0% { transform: scale(.2); } 40% { transform: scale(3); opacity: 1; } 100% { transform: scale(5); opacity: 0; } }
+@keyframes bolt { from { transform: translateX(-300px); } to { transform: translateX(0); opacity: 0; } }
+
+/* ---------- your move ---------- */
+.your-turn { position: absolute; left: 50%; top: 42%; z-index: 40; transform: translate(-50%, -50%); pointer-events: none; display: grid; justify-items: center;
+  font-family: var(--logo); font-size: clamp(34px, 6vw, 64px); text-transform: uppercase; color: var(--gold); white-space: nowrap; letter-spacing: .04em;
+  padding: 10px 34px 14px; border-radius: 18px; border: 3px solid var(--gold); background: rgba(5, 8, 16, .82);
+  text-shadow: 0 0 18px rgba(255, 225, 77, .6); box-shadow: 0 0 30px rgba(255, 225, 77, .35), inset 0 0 20px rgba(255, 225, 77, .15);
+  animation: yourturn 1.7s cubic-bezier(.2, 1.2, .4, 1) forwards; }
+.your-turn small { font-family: var(--title); font-weight: 800; font-size: .32em; letter-spacing: .2em; color: #fff; text-shadow: none; }
+@keyframes yourturn { 0% { transform: translate(-50%, -50%) scale(.5); opacity: 0; } 15% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; } 75% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; filter: blur(4px); } }
+
+/* ---------- banner changes hands ---------- */
+.callout { position: absolute; left: 50%; top: 16%; z-index: 38; transform: translateX(-50%); pointer-events: none; display: flex; align-items: center; gap: 14px; white-space: nowrap;
+  padding: 8px 22px 8px 12px; border-radius: 999px; background: rgba(5, 8, 16, .88); box-shadow: 0 0 0 2px var(--pc), 0 0 30px var(--pc), 0 10px 30px rgba(0, 0, 0, .6);
+  font-family: var(--title); font-weight: 900; font-size: clamp(16px, 2.4vw, 24px); color: #fff; animation: callout 2.2s ease-out forwards; }
+.callout .banner { animation: bannerspin .8s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes callout { 0% { transform: translateX(-50%) translateY(-20px) scale(.7); opacity: 0; } 12% { transform: translateX(-50%) scale(1.05); opacity: 1; } 80% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) translateY(-14px); } }
+@keyframes bannerspin { from { transform: rotateY(540deg) scale(.4); } }
+.score-pop { position: absolute; right: 0; top: -14px; font-style: normal; font-size: 18px; animation: moneyup 1.6s ease-out forwards; }
+.score-pop.up { color: var(--green-tx); } .score-pop.down { color: #ff8a80; }
+@keyframes moneyup { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-26px); opacity: 0; } }
+
+/* ---------- an encounter, as a hologram ---------- */
+.played { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; background: radial-gradient(60% 60% at 50% 50%, rgba(10, 30, 60, .55), rgba(0, 0, 0, .55)); animation: fade .25s; }
+.played-who { padding: 6px 18px; border-radius: 999px; font-family: var(--title); font-size: 18px; background: rgba(5, 8, 16, .9); box-shadow: inset 0 0 0 2px var(--pc), 0 0 20px var(--pc); }
+.played-who b { color: var(--gold); } .played-who b:first-child { color: var(--pc); }
+.played-card { position: relative; width: min(320px, 70vw, calc((100vh - 200px) * .734)); }
+.played-card .ecard { box-shadow: 0 0 0 2px rgba(120, 210, 255, .7), 0 0 40px rgba(80, 180, 255, .55), 0 30px 60px rgba(0, 0, 0, .7); }
+.holo-in { animation: holo .9s steps(1, end), pop2 .45s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes holo { 0% { opacity: .2; filter: hue-rotate(160deg) saturate(.4) brightness(1.6); } 10% { opacity: .9; } 20% { opacity: .3; } 30% { opacity: 1; filter: hue-rotate(160deg) saturate(.5) brightness(1.4); } 45% { opacity: .6; } 60% { opacity: 1; filter: none; } }
+.holo-scan { position: absolute; inset: 0; border-radius: 5%; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(140, 220, 255, .09) 0 2px, transparent 2px 5px); mix-blend-mode: screen; animation: scan 3.5s linear infinite; }
+@keyframes scan { from { background-position: 0 0; } to { background-position: 0 200px; } }
+.game .played-x { font-size: 14px; }
+
+/* ---------- the opening crawl + jump to hyperspace ---------- */
+.crawl { position: fixed; inset: 0; z-index: 90; overflow: hidden; background: #000; cursor: pointer; perspective: 380px; }
+.crawl-stars { position: absolute; inset: 0; background-image: radial-gradient(1px 1px at 20px 30px, #fff, transparent), radial-gradient(1px 1px at 140px 90px, #ddd, transparent), radial-gradient(1.5px 1.5px at 260px 200px, #fff, transparent), radial-gradient(1px 1px at 330px 40px, #bbb, transparent); background-size: 360px 260px; opacity: .8; }
+.crawl-intro { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; width: min(720px, 86vw); font-family: var(--body); font-weight: 500; font-size: clamp(20px, 3vw, 34px); line-height: 1.35; color: #4bd5ee; animation: introfade 2.6s ease-in-out forwards; }
+@keyframes introfade { 0% { opacity: 0; } 20%, 75% { opacity: 1; } 100% { opacity: 0; } }
+.crawl-logo { position: absolute; left: 50%; top: 50%; display: flex; flex-direction: column; align-items: center; font-family: var(--logo); text-transform: uppercase; color: transparent; -webkit-text-stroke: 2px var(--gold); line-height: .9; animation: logoaway 3.6s cubic-bezier(.3, 0, .6, 1) forwards; }
+.crawl-logo span { font-size: clamp(30px, 7vw, 80px); letter-spacing: .2em; }
+.crawl-logo b { font-size: clamp(60px, 16vw, 200px); border: 6px solid var(--gold); border-radius: .2em; padding: 0 .15em .05em; }
+@keyframes logoaway { from { transform: translate(-50%, -50%) scale(2.6); opacity: 1; } 85% { opacity: 1; } to { transform: translate(-50%, -50%) scale(.02); opacity: 0; } }
+.crawl-plane { position: absolute; left: 50%; bottom: 0; width: min(780px, 92vw); height: 100%; transform: translateX(-50%) rotateX(24deg); transform-origin: 50% 100%; overflow: hidden;
+  mask-image: linear-gradient(to top, #000 55%, transparent 92%); -webkit-mask-image: linear-gradient(to top, #000 55%, transparent 92%); }
+.crawl-text { position: absolute; top: 100%; width: 100%; color: var(--gold); font-family: var(--title); font-weight: 700; font-size: clamp(24px, 4vw, 42px); line-height: 1.45; text-align: justify; animation: crawlup var(--crawl) linear forwards; }
+.crawl-text h2 { text-align: center; text-transform: uppercase; font-size: 1.3em; margin: 0 0 .8em; letter-spacing: .06em; }
+.crawl-ep { text-align: center; margin: 0; letter-spacing: .1em; }
+@keyframes crawlup { to { transform: translateY(-175%); } }
+.game .crawl-skip, .crawl .crawl-skip { position: absolute; right: 18px; bottom: 18px; z-index: 3; color: #fff; background: rgba(255, 255, 255, .14); box-shadow: none; }
+.hyperspace { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #fff 0, rgba(180, 220, 255, .6) 6%, transparent 30%); animation: hyperflash 1.25s ease-in forwards; }
+.hyperspace i { position: absolute; inset: -50%; background: repeating-conic-gradient(from 0deg, rgba(200, 230, 255, .9) 0deg .6deg, transparent .6deg 7deg); mask-image: radial-gradient(circle, transparent 4%, #000 40%); -webkit-mask-image: radial-gradient(circle, transparent 4%, #000 40%); animation: streak 1.25s cubic-bezier(.7, 0, .9, .5) forwards; }
+.hyperspace i:nth-child(2) { transform: rotate(3deg); animation-delay: .05s; opacity: .7; }
+.hyperspace i:nth-child(3) { transform: rotate(5deg); animation-delay: .1s; opacity: .5; }
+.hyperspace i:nth-child(4) { transform: rotate(1.5deg); animation-delay: .15s; opacity: .4; }
+@keyframes streak { from { transform: scale(.1); opacity: 0; } 30% { opacity: 1; } to { transform: scale(3.5); opacity: 1; } }
+@keyframes hyperflash { 0%, 70% { opacity: 1; background-color: transparent; } 100% { background-color: #fff; opacity: 1; } }
+
+/* ---------- the end ---------- */
+.end { position: fixed; inset: 0; z-index: 80; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 30px 16px 40px; color: var(--tx);
+  background: radial-gradient(120% 90% at 50% 20%, #10213f, #03050b 70%); animation: fade .5s; }
+.end-stars { position: fixed; inset: 0; pointer-events: none; background-image: radial-gradient(1px 1px at 20px 30px, #fff, transparent), radial-gradient(1.5px 1.5px at 140px 90px, #bfe0ff, transparent), radial-gradient(1px 1px at 260px 200px, #fff, transparent); background-size: 300px 260px; opacity: .6; animation: drift 120s linear infinite; }
+.end > * { position: relative; }
+.end-title { margin: 6px 0 0; font-size: clamp(28px, 5vw, 52px); text-align: center; color: var(--tx-dim); }
+.end-title.in { color: #fff; animation: pop2 .6s cubic-bezier(.2, 1.5, .4, 1); text-shadow: 0 0 30px var(--pc); }
+.end-title.in b { color: var(--pc); }
+.end-tie { margin: 0; color: var(--gold); text-align: center; }
+.end-plaques { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+.plaque { position: relative; width: min(360px, 90vw); padding: 18px 18px 22px; border-radius: 18px; text-align: center; background: rgba(10, 16, 30, .85); box-shadow: inset 0 0 0 1px var(--glass-line), inset 0 4px 0 var(--pc), 0 20px 40px rgba(0, 0, 0, .5); transition: transform .6s, box-shadow .6s, filter .6s; }
+.plaque.winner { transform: scale(1.06); box-shadow: inset 0 0 0 2px var(--pc), 0 0 50px color-mix(in srgb, var(--pc) 55%, transparent), 0 20px 40px rgba(0, 0, 0, .5); }
+.plaque.loser { filter: saturate(.6) brightness(.8); }
+.plaque-face { width: 92px; height: 92px; margin: -60px auto 6px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 3px var(--pc), 0 0 24px var(--pc); }
+.plaque h2 { margin: 0; font-size: 26px; color: var(--pc); }
+.plaque-n { font-family: var(--title); font-weight: 900; font-size: 64px; line-height: 1; display: grid; }
+.plaque-n small { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--tx-dim); }
+.plaque-banners { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; min-height: 70px; margin-top: 10px; }
+.pb-drop { display: grid; justify-items: center; animation: bannerdrop .55s cubic-bezier(.2, 1.5, .4, 1); }
+.pb-drop small { font-family: var(--title); font-weight: 800; color: var(--tx-dim); }
+@keyframes bannerdrop { from { transform: translateY(-60px) rotateY(360deg) scale(1.6); opacity: 0; } }
+.plaque-crown { position: absolute; top: 12px; right: -10px; padding: 4px 14px; border-radius: 999px; font-family: var(--logo); font-size: 16px; text-transform: uppercase; color: #1b1300; background: linear-gradient(#ffe97a, #e0b800); box-shadow: 0 0 20px rgba(255, 225, 77, .7); animation: pop2 .5s cubic-bezier(.2, 1.6, .4, 1); }
+.end-stats { display: grid; gap: 4px; width: min(460px, 100%); padding: 12px 16px; border-radius: 14px; background: rgba(255, 255, 255, .05); box-shadow: inset 0 0 0 1px var(--glass-line); animation: rise .5s; }
+.end-stats > div { display: grid; grid-template-columns: 1fr 50px 50px; align-items: center; font-size: 15px; }
+.end-stats b { font-family: var(--title); font-weight: 900; font-size: 20px; text-align: center; }
+.end-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.game .end-reopen { position: absolute; right: 340px; bottom: 20px; z-index: 30; }
+
+/* ---------- calm motion: no flying, no pulsing, no crawl ---------- */
+.calm .galaxy .ccard, .calm .enc-slot .ecard, .calm .pc-thumb { animation: none !important; }
+.calm .ahsoka-piece { transition: none; }
+.calm .saber-trail, .calm .your-turn { display: none; }
+.calm .stars i, .calm .home-bg, .calm .home-ahsoka { animation: none; }
+.calm .callout { animation: fade .2s; }
