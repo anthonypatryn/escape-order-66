@@ -56,6 +56,10 @@ def main():
     os.makedirs(os.path.join(ROOT, 'public', 'icons'), exist_ok=True)
     icon.save(os.path.join(ROOT, 'public', 'icons', 'eo66-icon-180.png'))
     icon.resize((64, 64), Image.LANCZOS).save(os.path.join(ROOT, 'public', 'favicon.png'))
+    # the owner's logo (vector): crisp at any size
+    import fitz
+    logo = fitz.open(os.path.join(DECK, 'Links', 'logo.ai'))[0]
+    open(os.path.join(OUT, 'logo.svg'), 'w', encoding='utf8').write(logo.get_svg_image(text_as_path=True))
     print('done')
 
 

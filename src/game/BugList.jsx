@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { bugApi } from './BugReport';
 import { Toggle, useConfirm } from './ui';
+import { Logo } from './Cards';
 
 // /?view=bugs — the owner's list of bug reports: enter the PIN, copy reports for Claude, mark them fixed.
 export function bugText(b) {
@@ -99,7 +100,7 @@ export default function BugList() {
   return (
     <div className="buglist">
       <header className="game-top">
-        <div className="brand-logo sm" role="img" aria-label="Escape Order 66" />
+        <Logo size="sm" />
         <span className="game-turn">Bug reports · {open.length} open</span>
         <div className="game-top-r"><button onClick={() => load()}>Refresh</button><a className="top-link" href="/">Game</a></div>
       </header>

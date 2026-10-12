@@ -20,6 +20,7 @@ Several clips for one sound = one picked at random. A sound with no file stays s
 | `encounter` | an encounter is played |
 | `swap` | Satine switches two cards |
 | `turn` | your move |
-| `hyper` | the jump to hyperspace after the opening crawl |
+| `crawl.mp3` | the opening crawl music (owner's file; Crawl.jsx times the logo / crawl / tilt-down to it) |
+| `hyper` | not used any more (the crawl ends with a tilt down now) |
 | `win` | the winner is called |
 | `click` | an arrow key with no move that way |

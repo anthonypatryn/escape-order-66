@@ -27,12 +27,7 @@ export function Banner({ f, size = 44, off = false, className = '', title }) {
   );
 }
 
-// the yellow ESCAPE / ORDER 66 logo, drawn in type
-export function Logo({ size = 'md' }) {
-  return (
-    <div className={`logo logo-${size}`} role="img" aria-label="Escape Order 66">
-      <span className="logo-escape">Escape</span>
-      <span className="logo-order">Order 66</span>
-    </div>
-  );
+// the owner's ESCAPE ORDER 66 logo (ART/…/Links/logo.ai → public/art/logo.svg via tools/art.py)
+export function Logo({ size = 'md', className = '' }) {
+  return <img className={`logo logo-${size} ${className}`} src="/art/logo.svg" alt="Escape Order 66" draggable={false} />;
 }

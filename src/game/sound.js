@@ -4,10 +4,11 @@
 import { settings } from './prefs';
 
 const FILES = {
+  order66: [['order66', 0, 6.56, 1, 0.4]], // owner's clip: plays as the camera lands on the Galaxy after the crawl
   // saber: [['saber-swing', 0, 1.2, 1, 0.2]],
 };
 // mixer channels (Settings → Sound)
-const CHANNEL = { saber: 'saber', swap: 'saber', hum: 'saber', take: 'fx', kill: 'fx', banner: 'fx', encounter: 'fx', turn: 'fx', deal: 'fx', click: 'fx', lose: 'fx', win: 'music', hyper: 'music' };
+const CHANNEL = { crawl: 'music', order66: 'music', saber: 'saber', swap: 'saber', hum: 'saber', take: 'fx', kill: 'fx', banner: 'fx', encounter: 'fx', turn: 'fx', deal: 'fx', click: 'fx', lose: 'fx', win: 'music', hyper: 'music' };
 const level = (name) => settings().mix[CHANNEL[name] ?? 'fx'] ?? 1;
 
 let ctx = null;
@@ -132,6 +133,32 @@ export async function play(name, opts = {}) {
     const g = ctx.createGain(); g.gain.value = mix; g.connect(out());
     SYNTH[name]?.(g, ctx.currentTime + 0.01, opts);
   } catch { /* audio is optional */ }
+}
+
+// ---------- a piece of music from a file, started at an offset (the opening crawl) ----------
+// loadMusic() decodes it ahead of time (so the visuals can start on the same beat); playMusic() returns
+// { stop(fade) }. Goes through the Music mixer channel; returns null when muted / turned off (visuals still run).
+export function loadMusic(file) {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  try { wakeCtx(); return load(file); } catch { return Promise.resolve(null); }
+}
+export function playMusic(buf, { offset = 0, dur, fadeIn = 0.05, fadeOut = 1.5 } = {}) {
+  const lvl = settings().mix.music ?? 0.6;
+  if (!buf || muted || lvl <= 0) return null;
+  try {
+    wakeCtx();
+    const src = ctx.createBufferSource(), g = ctx.createGain(), t = ctx.currentTime + 0.02;
+    const len = dur ?? buf.duration - offset;
+    src.buffer = buf;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.9 * lvl, t + fadeIn);
+    g.gain.setValueAtTime(0.9 * lvl, t + Math.max(fadeIn, len - fadeOut)); g.gain.linearRampToValueAtTime(0.0001, t + len);
+    src.connect(g).connect(out()); src.start(t, offset, len);
+    return {
+      stop(fade = 0.8) {
+        try { const n = ctx.currentTime; g.gain.cancelScheduledValues(n); g.gain.setValueAtTime(g.gain.value, n); g.gain.linearRampToValueAtTime(0.0001, n + fade); src.stop(n + fade + 0.05); } catch { /* already stopped */ }
+      },
+    };
+  } catch { return null; }
 }
 
 // ---------- home-screen ambience: a low, slow space drone (Music channel) ----------

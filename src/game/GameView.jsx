@@ -122,9 +122,24 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
     setBursts((x) => [...x, b]);
   }
 
-  // the opening crawl → hyperspace → the cards are dealt → the game starts
-  const finishCrawl = () => {
+  // the opening crawl → the camera tilts down onto the Galaxy (pan) → the cards are dealt → the game starts
+  const [pan, setPan] = useState(0); // ms of the pan running now (0 = none)
+  const startPan = (ms) => {
+    setPan(ms);
+    if (!prefs.calm) later(() => { setDealing(true); later(() => setDealing(false), 1700); }, ms * 0.55);
+    later(() => setPan(0), ms + 50);
+  };
+  // panned = the crawl ended with the tilt down (the deal already ran during it)
+  // after the tilt down: "Execute Order 66" (owner's clip) with a red hologram over the Galaxy, the first turn starts under it
+  const [order66, setOrder66] = useState(false);
+  const finishCrawl = (panned = false) => {
     setCrawl(false);
+    if (panned) {
+      play('order66');
+      if (!prefs.calm) { setOrder66(true); later(() => setOrder66(false), 3600); }
+      later(() => start?.(), 2600);
+      return;
+    }
     if (!prefs.calm) { setDealing(true); later(() => setDealing(false), 1700); }
     later(() => start?.(), prefs.calm ? 0 : 1400);
   };
@@ -216,7 +231,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
   const unread = 0;
 
   return (
-    <div className={`game ${phone ? 'phone' : ''} ${land ? 'land' : ''} ${prefs.calm ? 'calm' : ''}`} style={{ '--ui': TEXT_ZOOM[prefs.text] ?? 1, '--p0': playerColor(0), '--p1': playerColor(1) }}>
+    <div className={`game ${phone ? 'phone' : ''} ${land ? 'land' : ''} ${prefs.calm ? 'calm' : ''} ${pan ? 'panning' : ''}`} style={{ '--ui': TEXT_ZOOM[prefs.text] ?? 1, '--p0': playerColor(0), '--p1': playerColor(1), '--pan': `${pan}ms` }}>
       <Stars />
       {phone ? (
         <header className="game-top">
@@ -248,6 +263,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
             <Galaxy state={state} moves={moves} preview={preview} onPreview={COARSE ? null : setHover} onPick={tapMove}
               targets={targets} onTarget={(k) => answer(k)} glide={glide} ghosts={ghosts} dealing={dealing} hoverChar={hoverChar ?? targetReq?.first} onHoverChar={setHoverChar} />
             {yourTurn}
+            {order66 && <div className="order66" role="status"><small>Transmission</small>Execute Order 66</div>}
             {callout && <Callout c={callout} />}
             {phone && <BannerStrip state={state} />}
           </div>
@@ -291,7 +307,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
       <div className="bursts" aria-hidden="true">
         {bursts.map((b) => <i key={b.id} className={`burst ${b.kind}`} style={{ left: b.x, top: b.y }} onAnimationEnd={() => setBursts((x) => x.filter((y) => y.id !== b.id))} />)}
       </div>
-      {crawl && <Crawl players={state.players} onDone={finishCrawl} />}
+      {crawl && <Crawl players={state.players} onPan={startPan} onDone={() => finishCrawl(true)} />}
       {confirmDialog}
       {rules && <RulesDrawer start={rules === true ? 'turn' : rules} keys={!phone} onClose={() => setRules(false)} />}
       {prefsOpen && <SettingsDrawer onClose={() => setPrefsOpen(false)} />}

@@ -29,14 +29,11 @@ a { color: var(--gold); }
 h1, h2, h3, h4 { font-family: var(--title); font-weight: 800; letter-spacing: .01em; }
 kbd { font-family: var(--title); }
 
-/* ---------- the logo, drawn in type (the yellow outlined box from the card backs) ---------- */
-.logo { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: .9; color: var(--gold); font-family: var(--logo); text-transform: uppercase; position: relative; }
-.logo-order { border: .09em solid var(--gold); border-radius: .26em; padding: .02em .22em .08em; letter-spacing: .02em; box-shadow: 0 0 .5em rgba(255, 225, 77, .25), inset 0 0 .4em rgba(255, 225, 77, .15); text-shadow: 0 0 .35em rgba(255, 225, 77, .35); }
-.logo-escape { font-size: .42em; letter-spacing: .14em; margin: 0 0 .08em .45em; }
-.logo-sm { font-size: 20px; }
-.logo-md { font-size: 34px; }
-.logo-lg { font-size: clamp(44px, 9vw, 72px); align-items: center; }
-.logo-lg .logo-escape { margin-left: 0; }
+/* ---------- the logo (the owner's art, an SVG) ---------- */
+.logo { display: block; height: auto; filter: drop-shadow(0 0 10px rgba(255, 225, 77, .25)) drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); }
+.logo-sm { height: 34px; width: auto; }
+.logo-md { height: 80px; width: auto; }
+.logo-lg { width: min(400px, 80vw); margin: 0 auto; }
 
 /* ---------- cards ---------- */
 .ccard { position: relative; aspect-ratio: 1; border-radius: 7%; overflow: hidden; background: #111; box-shadow: 0 3px 10px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .06); }
