@@ -10,6 +10,8 @@ const FILES = {
   // a character is killed: one of the owner's three blasters at random (these are ~2× louder than the sabers: levelled down)
   // a big haul (3+ cards in one move): one of the owner's two voice lines at random (quiet recordings: boosted)
   bighaul: [['haul-a', 0, 2.49, 2.2, 0.2], ['haul-b', 0.06, 0.85, 3.4, 0.12]],
+  // the end: the loser's scream (owner's clip), whoever won
+  lose: [['lose', 0, 4.26, 1, 0.4]],
   // Satine switches two cards (owner's clip; loud, so levelled down)
   swap: [['swap', 0.03, 1.5, 0.55, 0.2]],
   kill: [['kill-a', 0, 0.78, 0.5, 0.12], ['kill-b', 0.21, 0.9, 0.5, 0.15], ['kill-c', 0, 1.3, 0.5, 0.3]], // owner's clip: plays as the camera lands on the Galaxy after the crawl

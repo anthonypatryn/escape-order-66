@@ -23,5 +23,6 @@ Several clips for one sound = one picked at random. A sound with no file stays s
 | `crawl.mp3` | the opening crawl music (owner's file; Crawl.jsx times the logo / crawl / tilt-down to it) |
 | `hyper` | not used any more (the crawl ends with a tilt down now) |
 | `bighaul` | 3+ cards taken in one move — owner's clips `haul-a/b.mp3` (random) |
-| `win` | the winner is called |
+| `lose` | the winner is called: the loser's scream — owner's clip `lose.mp3` (then `win` 2.4 s later) |
+| `win` | the fanfare, 2.4 s after the winner is called |
 | `click` | an arrow key with no move that way |

@@ -15,7 +15,10 @@ export default function EndScreen({ state, onNew, onRematch, onBoard }) {
   useEffect(() => {
     const ts = [];
     for (let i = 1; i <= most; i++) ts.push(setTimeout(() => { setShown(i); play('banner'); }, 600 + i * 520));
-    ts.push(setTimeout(() => { setCalled(true); play('win'); }, 900 + (most + 1) * 520));
+    // the winner is called: the loser's "Nooo!" at once (whoever beat them), then the fanfare under its tail
+    const callAt = 900 + (most + 1) * 520;
+    ts.push(setTimeout(() => { setCalled(true); play('lose'); }, callAt));
+    ts.push(setTimeout(() => play('win'), callAt + 2400));
     return () => ts.forEach(clearTimeout);
   }, [most]);
   const w = state.players[winner];
