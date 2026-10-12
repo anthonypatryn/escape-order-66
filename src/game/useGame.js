@@ -47,6 +47,7 @@ export function useSounds(state) {
         const glide = MOVE_MS(l.path.length);
         play('saber', { len: glide / 1000 + 0.15 });
         l.take.forEach((_, k) => setTimeout(() => play('take'), glide + 80 + k * 140));
+        if (l.take.length >= 3) setTimeout(() => play('bighaul'), glide + 120 + l.take.length * 140); // a big haul: after the cards land
       }
       if (l.kind === 'take') play('take');
       if (l.kind === 'kill') play('kill');

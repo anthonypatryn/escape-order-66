@@ -8,6 +8,8 @@ const FILES = {
   // Ahsoka moves: one of the owner's three saber clips at random (leading silence trimmed)
   saber: [['saber-a', 0.06, 0.75, 1, 0.15], ['saber-b', 0.07, 0.85, 1, 0.15], ['saber-c', 0, 0.8, 1, 0.15]],
   // a character is killed: one of the owner's three blasters at random (these are ~2× louder than the sabers: levelled down)
+  // a big haul (3+ cards in one move): one of the owner's two voice lines at random (quiet recordings: boosted)
+  bighaul: [['haul-a', 0, 2.49, 2.2, 0.2], ['haul-b', 0.06, 0.85, 3.4, 0.12]],
   // Satine switches two cards (owner's clip; loud, so levelled down)
   swap: [['swap', 0.03, 1.5, 0.55, 0.2]],
   kill: [['kill-a', 0, 0.78, 0.5, 0.12], ['kill-b', 0.21, 0.9, 0.5, 0.15], ['kill-c', 0, 1.3, 0.5, 0.3]], // owner's clip: plays as the camera lands on the Galaxy after the crawl
