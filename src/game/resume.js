@@ -5,7 +5,7 @@ const KEY = 'eo-saves', MAX = 8;
 export function loadSaves() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } }
 function store(list) { try { localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX))); } catch { /* full or private */ } }
 
-export function saveGame(game, state) {
+export function saveGame(game, state, host = null) {
   if (!game || !state || game.rewind) return;
   const id = game.setup.seed;
   if (state.results) { deleteSave(id); return; }
@@ -14,6 +14,7 @@ export function saveGame(game, state) {
     id, at: Date.now(), setup: game.setup, trail: game.trail, speeds: game.speeds,
     stopAt: state.request?.id ?? game.reqNo + 1,
     sum: { turn: state.players[state.turn]?.name, turnNo: state.turnNo, banners },
+    ...(host ? { kind: 'host', host } : {}),
   };
   store([entry, ...loadSaves().filter((s) => s.id !== id)]);
 }

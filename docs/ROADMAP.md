@@ -15,8 +15,12 @@
 - **Youngling** might be too weak (7% wins vs the other levels) — soften if the owner says so.
 - Desktop at full width hasn't been eyeballed (the browser pane is 800 px); the owner plays on desktop + iPhone.
 
+- **Online play** built 2026-10-12 (tested in two tabs: join, refresh rejoin, host reload → same code, drop → computer plays →
+  hand back). Not yet tested on two real devices / phone data. Relay keys (`CF_TURN_KEY_ID`, `CF_TURN_API_TOKEN`) are only on
+  Long Shot's Vercel project so far: the owner copies them to escape-order-66 (then redeploy), or online works direct-only.
+
 ## Ideas / not built
-- Online play (Long Shot / Guillotine have PeerJS rooms: `src/net/room.js` could be ported).
+- Online extras Long Shot has: chat, quick reactions, cloud save codes.
 - 3–4 players, team variant, The Ones (owner: not wanted for now).
 - Saved-game cloud codes (Long Shot has them).
 - More tracks for the music player (`TRACKS` in `src/game/music.js`).

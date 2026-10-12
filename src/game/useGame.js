@@ -47,7 +47,7 @@ export function useSounds(state) {
   const last = useRef(null);
   const locked = useRef(null);
   useEffect(() => {
-    if (!state) return;
+    if (!state) { last.current = null; return; } // (online: between games) the next game's log starts again
     if (last.current == null) { last.current = state.log.at(-1)?.id ?? 0; locked.current = lockedSet(state); return; }
     const fresh = state.log.filter((l) => l.id > last.current);
     if (!fresh.length) return;

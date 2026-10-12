@@ -504,3 +504,36 @@ button.linkish, :is(.game, .home, .buglist) button.linkish { background: none; b
 .sounds .time-arrows button:first-child { border-top-right-radius: 7px; }
 .sounds .time-arrows button:last-child { border-bottom-right-radius: 7px; }
 .sounds .time-arrows button:active { background: rgba(102, 204, 255, .3); }
+
+/* ---------- online (Online.jsx): mode chips, lobby, room code, connection notes ---------- */
+.home-modes { display: flex; justify-content: center; margin: 18px 0 2px; }
+.home-modes .chips button { font-family: var(--title); font-weight: 700; }
+.home-form .note { text-align: left; margin: 0 0 12px; }
+.code-input { font-family: var(--title) !important; font-size: 26px !important; font-weight: 900; letter-spacing: .3em; text-transform: uppercase; text-align: center; }
+.home-actions.center { justify-content: center; }
+.lobby .note { margin: 10px auto; max-width: 440px; }
+.lobby-label { margin: 18px 0 0; font-family: var(--title); font-weight: 700; font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--tx-dim); }
+.room-code { font-family: var(--title); font-weight: 900; font-size: clamp(40px, 12vw, 64px); letter-spacing: .18em; padding-left: .18em; color: var(--gold); text-shadow: 0 0 24px rgba(255, 225, 77, .45); line-height: 1.1; }
+.seat-fixed { flex: 1; min-width: 0; text-align: left; font-family: var(--title); font-weight: 700; font-size: 16px; padding: 8px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seat-kind-icon { display: inline-flex; color: var(--tx-dim); padding: 0 4px; }
+.seat-dot.off { background: transparent; box-shadow: inset 0 0 0 2px var(--pc); animation: blink 1.4s ease-in-out infinite; }
+.seat-wait { background: transparent !important; box-shadow: inset 0 0 0 1px var(--glass-line) !important; border: 1px dashed rgba(160, 200, 255, .25); }
+.seat-wait .seat-fixed { color: var(--tx-dim); font-weight: 600; }
+.seat-wait button { font-size: 13.5px; padding: 7px 10px; }
+.icon-btn { width: 34px; height: 34px; padding: 0; flex: none; }
+.icon-btn-gap { width: 34px; flex: none; }
+.lobby .home-links button.linkish { font-size: 14px; color: var(--tx-dim); }
+@keyframes blink { 50% { opacity: .35; } }
+.room-badge { font-family: var(--title); font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--tx-dim); padding: 5px 9px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--glass-line); white-space: nowrap; }
+.room-badge b { color: var(--gold); letter-spacing: .14em; }
+.menu-room { margin: 0 0 10px; font-family: var(--title); color: var(--tx-dim); }
+.menu-room b { color: var(--gold); letter-spacing: .14em; font-size: 20px; }
+.net-banner { position: fixed; top: calc(env(safe-area-inset-top) + 8px); left: 50%; transform: translateX(-50%); z-index: 90; padding: 7px 16px; border-radius: 999px; font-family: var(--title); font-weight: 700; font-size: 14px; color: #111; background: var(--gold); box-shadow: 0 6px 24px rgba(0, 0, 0, .5); animation: blink 1.6s ease-in-out infinite; pointer-events: none; }
+.net-banner.watch { color: #fff; background: rgba(40, 60, 100, .92); animation: none; }
+.room-notice { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 80; max-width: min(520px, 92vw); padding: 8px 14px; border-radius: 10px; font-size: 14px; background: rgba(60, 20, 20, .92); color: #ffd7d2; box-shadow: inset 0 0 0 1px rgba(255, 120, 100, .3); }
+.pc-away { font-family: var(--title); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #ffb259; animation: blink 1.4s ease-in-out infinite; }
+.pc-net { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 6px 0; padding: 6px 9px; border-radius: 9px; font-size: 13.5px; color: var(--tx); background: rgba(255, 178, 89, .1); box-shadow: inset 0 0 0 1px rgba(255, 178, 89, .3); }
+.pc-net button { font-size: 13px; padding: 5px 9px; }
+.pc-kick { font-size: 12.5px !important; color: var(--tx-dim) !important; display: block; margin: 0 0 4px auto; }
+.prompt.thinking.lost { flex-wrap: wrap; gap: 8px; }
+.prompt.thinking.lost button { margin-left: auto; font-size: 13.5px; padding: 6px 11px; }

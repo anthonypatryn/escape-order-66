@@ -7,7 +7,7 @@ import { countFor } from './rules';
 
 // The end: each player's banners land one at a time, then the winner is called (with the tiebreak if there was one),
 // then the highlights. Rematch / New game; "See the Galaxy" closes it to look at the final board.
-export default function EndScreen({ state, onNew, onRematch, onBoard }) {
+export default function EndScreen({ state, onNew, onRematch, onBoard, newLabel = 'New game' }) {
   const { rows, winner, tiebreak, stats } = state.results;
   const most = Math.max(...rows.map((r) => r.n));
   const [shown, setShown] = useState(0); // how many banners are on the plaques so far (per row, together)
@@ -56,8 +56,8 @@ export default function EndScreen({ state, onNew, onRematch, onBoard }) {
       )}
       <div className="end-btns">
         <button onClick={onBoard}>See the Galaxy</button>
-        <button onClick={onNew}>New game</button>
-        <button className="primary big" onClick={onRematch}>Rematch</button>
+        <button className={onRematch ? '' : 'primary big'} onClick={onNew}>{newLabel}</button>
+        {onRematch && <button className="primary big" onClick={onRematch}>Rematch</button>}
       </div>
     </div>
   );

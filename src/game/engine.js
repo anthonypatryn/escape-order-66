@@ -87,7 +87,20 @@ export class Game {
   ask(player, req) {
     if (this.stopped) return new Promise(() => {});
     const id = ++this.reqNo, at = this.logNo;
-    if (this.rewind && id >= this.rewind.stopAt) this.endRewind();
+    if (this.rewind) {
+      // online: seats the computer took over (a friend dropped out) and handed back (they returned) change hands at
+      // the same moments again, in the order they happened (as Long Shot)
+      const evs = (this.rewind.events ??= this.rewind.trail.filter((t) => t.takeover != null || t.handback != null));
+      while (evs.length) {
+        const t = evs[0];
+        if (!(t.takeover != null ? t.pendingReq === id || (t.pendingReq == null && t.after < id) : t.after < id)) break;
+        evs.shift();
+        const p = this.player(t.takeover ?? t.handback);
+        p.ai = t.takeover != null; p.away = t.takeover != null;
+        this.trail.push(t); // kept, so the next save (and the next resume) still has it
+      }
+      if (id >= this.rewind.stopAt) this.endRewind();
+    }
     this.s.request = { ...req, player: player.id, id };
     this.emit();
     return new Promise((resolve) => {
@@ -97,7 +110,7 @@ export class Game {
         this.emit(); resolve(v);
       };
       if (this.rewind && !player.ai) {
-        const rec = this.rewind.trail.find((t) => t.req === id);
+        const rec = this.rewind.trail.find((t) => t.req === id && t.takeover == null);
         if (rec) { queueMicrotask(() => this.pending?.(rec.value)); return; }
         this.endRewind();
         this.emit();
@@ -109,6 +122,24 @@ export class Game {
     });
   }
   answer(value, reqId) { if (reqId == null || reqId === this.s.request?.id) this.pending?.(value); }
+  // online: the friend's connection dropped — the computer plays their seat (answering anything they were asked)
+  takeOver(pid) {
+    const p = this.player(pid);
+    if (!p || p.ai) return;
+    this.trail.push({ takeover: pid, pendingReq: this.s.request?.player === pid ? this.s.request.id : null, after: this.reqNo });
+    p.ai = true; p.away = true;
+    this.log(`The computer takes over for ${p.name}.`);
+    const req = this.s.request;
+    if (req && req.player === pid) this.pending?.(aiDecide(this, p, req));
+  }
+  // they're back: their seat is theirs again from the next question on
+  handBack(pid) {
+    const p = this.player(pid);
+    if (!p || !p.ai || !p.away) return;
+    this.trail.push({ handback: pid, after: this.reqNo });
+    p.ai = false; p.away = false;
+    this.log(`${p.name} is back and plays again.`);
+  }
   stop() { this.stopped = true; }
 
   static rewound(setup, trail, stopAt, { onChange, speeds = { human: 1, ai: 1 } } = {}) {

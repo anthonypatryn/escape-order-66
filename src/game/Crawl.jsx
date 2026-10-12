@@ -20,7 +20,7 @@ const PAN_MS = 8400;          // the soft passage lasts ~8.5 s
 const END = PAN_AT + PAN_MS / 1000; // music fades out, the game begins
 const SKIP_PAN_MS = 3400;
 
-export default function Crawl({ players, onPan, onDone }) {
+export default function Crawl({ players, onPan, onDone, skipNow = false }) {
   const [step, setStep] = useState('load'); // load → intro → black → title → pan
   const [panMs, setPanMs] = useState(PAN_MS);
   const music = useRef(null);
@@ -62,6 +62,9 @@ export default function Crawl({ players, onPan, onDone }) {
     window.addEventListener('keydown', key, true);
     return () => { live = false; clearTimeout(fallback); clear(); music.current?.stop(0.3); window.removeEventListener('keydown', key, true); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // online, a friend's screen: the host skipped (their game is under way), so this one catches up
+  useEffect(() => { if (skipNow) skip(); }, [skipNow]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [a, b] = players.map((p) => p.name);
   return (

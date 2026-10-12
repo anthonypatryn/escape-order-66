@@ -23,7 +23,9 @@ const cname = (id) => CHAR[id]?.name ?? id;
 const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 // the game screen. props: { state, game, answer, start, rewind, seed, onExit, onRematch, lab }
-export default function GameView({ state, game, answer, start, rewind, seed, onExit, onRematch, lab = null, fresh = true }) {
+// Online (Online.jsx): mySeat = this browser's seat (null = one screen, -1 = watching); online = { role: 'host' | 'client',
+// code, seats, watchers, onTakeOver, onKick, notice }; a friend's screen has no game (state comes from the host)
+export default function GameView({ state, game, answer, start, rewind, seed, onExit, onRematch, lab = null, fresh = true, mySeat = null, online = null, onDismissRead }) {
   const prefs = useSettings();
   const { phone, land } = usePhone();
   const full = useFullscreen();
@@ -152,12 +154,19 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
   useEffect(() => { if (!crawl && game && !game.started && !lab) { if (!prefs.crawl || prefs.calm) finishCrawl(); } }, [game]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (crawl && (!prefs.crawl || prefs.calm)) finishCrawl(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const mineSeat = (pid) => mySeat == null || pid === mySeat; // questions this screen answers
+  // online: the seat being asked has dropped out (the host can hand it to the computer right there)
+  const lostSeat = (pid) => {
+    const s = online?.seats?.[pid];
+    if (s?.kind !== 'remote' || s.connected || state?.players[pid]?.ai) return null;
+    return { onTakeOver: online.role === 'host' ? () => online.onTakeOver(pid) : null };
+  };
   const r0 = state?.request, a0 = r0 ? state.players[r0.player] : null;
-  const yourTurn = useYourTurn(r0?.type === 'move' && a0 && !a0.ai ? r0.id : null, { turnKey: state?.turnNo, name: a0?.name });
+  const yourTurn = useYourTurn(r0?.type === 'move' && a0 && !a0.ai && mineSeat(r0.player) ? r0.id : null, { turnKey: state?.turnNo, name: a0?.name });
   if (!state) return null;
   const req = state.request;
   const asked = req ? state.players[req.player] : null;
-  const human = !!(req && asked && !asked.ai);
+  const human = !!(req && asked && !asked.ai && mineSeat(req.player));
   const moveReq = human && req.type === 'move' ? req : null;
   const moves = moveReq?.options ?? null;
   const preview = moves ? (hover ?? sel) : null;
@@ -180,7 +189,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
         setEncOpen(null); setTab(null); play('undo'); rewind(r);
       } };
   }
-  const dismissPlayed = () => { setPlayed(null); game?.skipRead?.(); };
+  const dismissPlayed = () => { setPlayed(null); if (game) game.skipRead?.(); else onDismissRead?.(); };
   keys.current = (e) => {
     if (e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'z' || e.key === 'Z')) {
       if (document.querySelector('.modal')) return;
@@ -224,14 +233,19 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
   // ---------- pieces ----------
   const speedRow = (who) => <div className="speed">{SPEEDS.map((s) => <button key={s} className={speeds[who] === s ? 'on' : ''} onClick={() => setSpeeds({ [who]: s })}>{s}×</button>)}</div>;
   const soundBtn = <button onClick={() => { setMuted(!muted); setMute(!muted); }} title="Sound on / off (M)">{muted ? 'Muted' : <>Sound<span className="wide-only"> on</span></>}<Kbd k="M" /></button>;
-  const leave = async () => { if (lab || state.results || await confirmIt({ title: 'Take a break?', body: 'The game is saved. Pick it up any time from Saved games on the home screen.', yes: 'Leave' })) onExit(); };
+  const leave = async () => {
+    const ask = online?.role === 'host' ? { title: 'End this game?', body: 'You both go back to the lobby. The game stays in Saved games on your home screen: resume it there and your friend rejoins with the same room code.', yes: 'End the game', danger: true }
+      : online ? { title: 'Leave this game?', body: online.spectator ? 'You stop watching.' : 'You can rejoin with the room code (and the same name) while the game is still on.', yes: 'Leave', danger: true }
+      : { title: 'Take a break?', body: 'The game is saved. Pick it up any time from Saved games on the home screen.', yes: 'Leave' };
+    if (lab || state.results || await confirmIt(ask)) onExit();
+  };
   const banners = <BannersPanel state={state} hoverChar={hoverChar} />;
   const encounters = <EncountersPanel state={state} req={human && req.type === 'encounter' ? req : null} onOpen={setEncOpen} />;
-  const players = <PlayersPanel state={state} onOpenArea={setAreaOpen} targetReq={targetReq} onTarget={answer} hoverChar={hoverChar} setHoverChar={setHoverChar} />;
+  const players = <PlayersPanel state={state} online={online} confirmIt={confirmIt} onOpenArea={setAreaOpen} targetReq={targetReq} onTarget={answer} hoverChar={hoverChar} setHoverChar={setHoverChar} />;
   const log = <Log log={state.log} me={null} Toggle={Toggle} undo={undo} />;
   const promptDock = (
     <div className="prompt-dock">
-      {req && <Prompt state={state} req={req} human={human} answer={answer} preview={preview} setHover={setHover} sel={sel} setSel={setSel} onPickMove={pickMove} onTapMove={tapMove} onOpenEnc={setEncOpen} hints={prefs.hints} />}
+      {req && <Prompt state={state} req={req} human={human} lost={lostSeat(req.player)} answer={answer} preview={preview} setHover={setHover} sel={sel} setSel={setSel} onPickMove={pickMove} onTapMove={tapMove} onOpenEnc={setEncOpen} hints={prefs.hints} />}
     </div>
   );
   const unread = 0;
@@ -252,6 +266,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
           <TurnSteps phase={state.phase} />
           <div className="game-top-r">
             {lab && <span className="lab-badge">LAB</span>}
+            {online && <span className="room-badge" title="Your friend joins with this code">Room <b>{online.code}</b></span>}
             <MusicPlayer compact />
             {game && <SpeedMenu speeds={speeds} row={speedRow} />}
             <button onClick={() => setRules('turn')} title="How to play (R) · keyboard keys (?)">Rules<Kbd k="R" /></button>
@@ -259,7 +274,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
             {soundBtn}
             <button onClick={() => setPrefsOpen(true)}>Settings</button>
             {canFullscreen() && <button className="fs-btn" onClick={(e) => { e.currentTarget.blur(); toggleFullscreen(); }} title={full ? 'Leave full screen (F or Esc)' : 'Full screen (F)'} aria-label="Full screen"><FullscreenIcon on={full} /><Kbd k="F" /></button>}
-            <button onClick={leave}>Leave</button>
+            <button onClick={leave}>{online?.role === 'host' ? 'End game' : 'Leave'}</button>
           </div>
         </header>
       )}
@@ -299,6 +314,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
           <aside className="drawer phone-menu" onClick={(e) => e.stopPropagation()} aria-label="Menu">
             <div className="drawer-head"><h2>Menu</h2><button onClick={() => setMenu(false)}>Close</button></div>
             <div className="drawer-body">
+              {online && <p className="menu-room">Room <b>{online.code}</b></p>}
               <MusicPlayer />
               {game && <div className="menu-row"><span>People’s turns</span>{speedRow('human')}</div>}
               {game && <div className="menu-row"><span>Computer turns</span>{speedRow('ai')}</div>}
@@ -308,7 +324,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
                 <button onClick={() => { setMenu(false); setPrefsOpen(true); }}>Settings</button>
                 <button onClick={() => { setMenu(false); setBug(true); }}>Report a bug</button>
                 {undo?.last && <button onClick={() => { setMenu(false); undo.onUndo(undo.last.req, undo.last.label, true); }}>Undo</button>}
-                <button className="danger" onClick={() => { setMenu(false); leave(); }}>Leave game</button>
+                <button className="danger" onClick={() => { setMenu(false); leave(); }}>{online?.role === 'host' ? 'End game' : 'Leave game'}</button>
               </div>
             </div>
           </aside>
@@ -321,12 +337,13 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
       <div className="bursts" aria-hidden="true">
         {bursts.map((b) => <i key={b.id} className={`burst ${b.kind}`} style={{ left: b.x, top: b.y }} onAnimationEnd={() => setBursts((x) => x.filter((y) => y.id !== b.id))} />)}
       </div>
-      {crawl && <Crawl players={state.players} onPan={startPan} onDone={() => finishCrawl(true)} />}
+      {crawl && <Crawl players={state.players} onPan={startPan} onDone={() => finishCrawl(true)} skipNow={!game && state.phase !== 'setup'} />}
+      {online?.notice && <div className="room-notice">{online.notice}</div>}
       {confirmDialog}
       {rules && <RulesDrawer start={rules === true ? 'turn' : rules} keys={!phone} onClose={() => setRules(false)} />}
       {prefsOpen && <SettingsDrawer onClose={() => setPrefsOpen(false)} />}
-      {bug && <BugReport onClose={() => setBug(false)} context={{ round: state.turnNo, turn: turnP.name, seed, players: state.players.map((p) => ({ name: p.name, ai: p.ai })), log: state.log.slice(-15).map((l) => l.text) }} />}
-      {showEnd && state.results && <EndScreen state={state} onNew={onExit} onRematch={onRematch} onBoard={() => setShowEnd(false)} />}
+      {bug && <BugReport onClose={() => setBug(false)} context={{ round: state.turnNo, turn: turnP.name, seed, players: state.players.map((p) => ({ name: p.name, ai: p.ai })), online: online?.role ?? 'local', log: state.log.slice(-15).map((l) => l.text) }} />}
+      {showEnd && state.results && <EndScreen state={state} onNew={onExit} onRematch={online?.role === 'client' ? undefined : onRematch} newLabel={online ? 'Back to the lobby' : 'New game'} onBoard={() => setShowEnd(false)} />}
       {!showEnd && state.results && <button className="end-reopen" onClick={() => setShowEnd(true)}>Results</button>}
     </div>
   );
@@ -403,18 +420,19 @@ function EncountersPanel({ state, req, onOpen }) {
 }
 
 // ---------- right panel: the two players ----------
-function PlayersPanel({ state, onOpenArea, targetReq, onTarget, hoverChar, setHoverChar }) {
+function PlayersPanel({ state, online, confirmIt, onOpenArea, targetReq, onTarget, hoverChar, setHoverChar }) {
   const tgt = new Map((targetReq?.options ?? []).map((o, k) => [o.id, { k, at: o.at }]).filter(([, v]) => v.at.where === 'play'));
   return (
     <div className="players-panel">
       <div className="panel-title">Players</div>
-      {state.players.map((p) => <PlayerCard key={p.id} p={p} state={state} onOpen={() => onOpenArea(p.id)} tgt={tgt} verb={targetReq?.verb} onTarget={onTarget} hoverChar={hoverChar} setHoverChar={setHoverChar} />)}
+      {state.players.map((p) => <PlayerCard key={p.id} p={p} state={state} online={online} confirmIt={confirmIt} onOpen={() => onOpenArea(p.id)} tgt={tgt} verb={targetReq?.verb} onTarget={onTarget} hoverChar={hoverChar} setHoverChar={setHoverChar} />)}
     </div>
   );
 }
 
-function PlayerCard({ p, state, onOpen, tgt, verb, onTarget, hoverChar, setHoverChar }) {
+function PlayerCard({ p, state, online, confirmIt, onOpen, tgt, verb, onTarget, hoverChar, setHoverChar }) {
   const turn = state.turn === p.id && !state.results;
+  const seat = online?.seats?.[p.id], remote = seat?.kind === 'remote', host = online?.role === 'host';
   const mine = FACTIONS.filter((f) => state.banner[f.id] === p.id);
   const score = mine.length;
   const groups = FACTIONS.map((f) => ({ f, cards: p.cards.filter((id) => CHAR[id].faction === f.id) }));
@@ -423,9 +441,17 @@ function PlayerCard({ p, state, onOpen, tgt, verb, onTarget, hoverChar, setHover
       <div className="pcard-top">
         <span className="pc-dot" />
         <b className="pc-name">{turn && <span className="turn-flag">Turn</span>}{p.name}</b>
-        {p.ai && <span className="pc-cpu"><CpuIcon size={16} />{levelName(p.level)}</span>}
+        {p.ai && !p.away && <span className="pc-cpu"><CpuIcon size={16} />{levelName(p.level)}</span>}
+        {remote && !seat.connected && <span className="pc-away">away</span>}
         <span className="pc-score" title="Banners held"><ScorePop n={score} />{score}<small>banner{score === 1 ? '' : 's'}</small></span>
       </div>
+      {host && remote && !seat.connected && !p.ai && (
+        <div className="pc-net">Lost connection: they’re reconnecting. <button onClick={() => online.onTakeOver(p.id)}>Let the computer play</button></div>
+      )}
+      {remote && p.away && <div className="pc-net"><CpuIcon size={15} /> The computer plays until {p.name} is back (rejoining gives them the seat back).</div>}
+      {host && remote && seat.connected && !p.ai && !state.results && (
+        <button className="pc-kick linkish" onClick={async () => { if (await confirmIt({ title: `Remove ${p.name}?`, body: 'The computer plays their seat for the rest of the game.', yes: 'Remove', danger: true })) online.onKick(p.id); }}>Remove from the game</button>
+      )}
       <div className="pc-banners">
         {FACTIONS.map((f) => <span key={f.id} data-pb={`${p.id}-${f.id}`} className={`pc-slot ${state.banner[f.id] === p.id ? 'on' : ''}`}><Banner f={f.id} size={26} off={state.banner[f.id] !== p.id} /></span>)}
       </div>
@@ -467,9 +493,10 @@ function ScorePop({ n }) {
 }
 
 // ---------- the question ----------
-function Prompt({ state, req, human, answer, preview, setHover, sel, setSel, onPickMove, onTapMove, onOpenEnc, hints }) {
+function Prompt({ state, req, human, lost, answer, preview, setHover, sel, setSel, onPickMove, onTapMove, onOpenEnc, hints }) {
   const p = state.players[req.player];
   if (!human) {
+    if (lost) return <div className="prompt thinking lost"><span className="holo-dot" style={{ background: playerColor(p.id) }} /><span><b>{p.name}</b> lost connection · reconnecting <span className="dots" /></span>{lost.onTakeOver && <button onClick={lost.onTakeOver}>Let the computer play</button>}</div>;
     return <div className="prompt thinking"><span className="holo-dot" style={{ background: playerColor(p.id) }} /><b>{p.name}</b> is {req.type === 'move' ? 'plotting a course' : 'deciding'} <span className="dots" /></div>;
   }
   if (req.type === 'move') {
