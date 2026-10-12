@@ -34,6 +34,7 @@ function audio() {
 export function applyVolume() { if (el) el.volume = Math.max(0, Math.min(1, st.vol * (settings().mix.music ?? 0.6))); }
 
 export function play() {
+  if (quietPage()) return;
   const a = audio(); if (!a || st.held) return;
   st.on = true;
   a.play().then(() => { if (st.held) { st.resume = true; a.pause(); } }).catch(() => {}); // a show started while it was starting
@@ -69,7 +70,9 @@ function fade(to, ms, done) {
 }
 
 // first tap anywhere starts the music (unless the player was paused on purpose)
-if (typeof window !== 'undefined') {
+// (never on the sound editor page: there only the clips being edited should be heard)
+const quietPage = () => typeof location !== 'undefined' && new URLSearchParams(location.search).get('view') === 'sounds';
+if (typeof window !== 'undefined' && !quietPage()) {
   const first = () => { if (st.on && !st.held && !st.playing) play(); };
   window.addEventListener('pointerdown', first, { once: true, capture: true });
   window.addEventListener('keydown', first, { once: true, capture: true });

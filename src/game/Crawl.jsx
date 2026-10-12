@@ -78,7 +78,7 @@ export default function Crawl({ players, onPan, onDone }) {
             <h2>The Hunted Padawan</h2>
             <p>The Clone Wars are over, and a darker order has been given. Across the galaxy, the clones have turned their blasters on the Jedi who led them. The few who survive are scattered and in hiding.</p>
             <p>AHSOKA TANO, former Padawan of Anakin Skywalker, wanders alone, marked for extermination by Order 66. As the Empire’s grip tightens, her survival depends on staying one step ahead of the relentless pursuit.</p>
-            <p>To escape, she will need the help of friends — and some enemies. Bounty hunters, the witches of Dathomir, and a squad of defective clones who refused their orders all have a part to play….</p>
+            <p>To escape, she will need the help of friends — and some enemies. Bounty hunters, the witches of Dathomir, and a squad of defective clones who refused their orders all have a part to play.</p>
             <p>Now two strategists, {a} and {b}, race to guide her across the galaxy. Whoever wins the loyalty of the most factions will decide whether the last free Jedi can outmaneuver the Empire and escape the clutches of Order 66….</p>
           </div>
         </div>
