@@ -24,5 +24,6 @@ Several clips for one sound = one picked at random. A sound with no file stays s
 | `hyper` | not used any more (the crawl ends with a tilt down now) |
 | `bighaul` | 3+ cards taken in one move — owner's clips `haul-a/b.mp3` (random) |
 | `lose` | the winner is called: the loser's scream — owner's clip `lose.mp3` (then `win` 2.4 s later) |
+| `enc-<id>` | an encounter's own voice line, on top of `encounter` (ids: hondo waxer rex saw fennec omega krell sidious huyang nightsisters droids satine trench bokatan) — have: `enc-droids.mp3` |
 | `win` | the fanfare, 2.4 s after the winner is called |
 | `click` | an arrow key with no move that way |

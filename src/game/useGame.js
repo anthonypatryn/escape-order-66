@@ -52,7 +52,7 @@ export function useSounds(state) {
       if (l.kind === 'take') play('take');
       if (l.kind === 'kill') play('kill');
       if (l.kind === 'swap') play('swap');
-      if (l.kind === 'encounter' && l.enc) play('encounter');
+      if (l.kind === 'encounter' && l.enc) { play('encounter'); setTimeout(() => play(`enc-${l.enc}`), 350); } // + its voice line, if it has one
       if (l.kind === 'banner') setTimeout(() => play('banner', { down: l.to == null }), 100);
     }
   }, [state]);

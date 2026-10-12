@@ -10,6 +10,8 @@ const FILES = {
   // a character is killed: one of the owner's three blasters at random (these are ~2× louder than the sabers: levelled down)
   // a big haul (3+ cards in one move): one of the owner's two voice lines at random (quiet recordings: boosted)
   bighaul: [['haul-a', 0, 2.49, 2.2, 0.2], ['haul-b', 0.06, 0.85, 3.4, 0.12]],
+  // encounter voice lines (enc-<id>), played as that encounter's hologram card appears; add more the same way
+  'enc-droids': [['enc-droids', 0, 0.9, 1, 0.1]],
   // your move: R2-D2 (owner's clip; hot recording, levelled down)
   turn: [['turn', 0.01, 0.8, 0.5, 0.1]],
   // the end: the loser's scream (owner's clip), whoever won
