@@ -246,22 +246,44 @@ function ClipEditor({ clip, n, onChange, onRemove }) {
   );
 }
 
-// a time box you can type into freely ("1:43.69" or "103.69"); it applies on Enter or when you click away (BUG: typing
-// used to be clamped on every keystroke, so a half-typed time snapped back)
+// a time box you can type into freely ("1:43.69" or "103.69", applied on Enter / click away) AND nudge: ▲▼ buttons step
+// 0.01 s (hold to keep stepping), ↑ / ↓ keys while it's selected do the same, Shift = 0.1 s
 function TimeInput({ value, onCommit }) {
   const [text, setText] = useState(null); // null = not editing: show the value
+  const cur = useRef(value); cur.current = value;
+  const rep = useRef(null);
   const parse = (v) => {
     const m = String(v).trim().match(/^(?:(\d+):)?(\d+(?:\.\d*)?)$/);
     if (!m) return null;
     return (m[1] ? Number(m[1]) * 60 : 0) + Number(m[2]);
   };
   const commit = () => { const t = parse(text); setText(null); if (t != null && Number.isFinite(t)) onCommit(t); };
+  const nudge = (d) => { const t = Math.max(0, +(cur.current + d).toFixed(3)); cur.current = t; setText(null); onCommit(t); };
+  const hold = (d) => { nudge(d); clearTimeout(rep.current); const go = (ms) => { rep.current = setTimeout(() => { nudge(d); go(Math.max(30, ms * 0.8)); }, ms); }; go(380); };
+  const stop = () => clearTimeout(rep.current);
+  useEffect(() => stop, []);
+  const step = (e) => (e.shiftKey ? 0.1 : 0.01);
   return (
-    <input className={`time-in ${text != null && parse(text) == null ? 'bad' : ''}`} inputMode="decimal" value={text ?? fmt(value)}
-      onFocus={(e) => { setText(fmt(value)); requestAnimationFrame(() => e.target.select()); }}
-      onChange={(e) => setText(e.target.value)} onBlur={commit}
-      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') { setText(null); e.currentTarget.blur(); } }}
-      title="Type a time like 1:43.69 or 103.69, then Enter" />
+    <span className="time-box">
+      <input className={`time-in ${text != null && parse(text) == null ? 'bad' : ''}`} inputMode="decimal" value={text ?? fmt(value)}
+        onFocus={(e) => { setText(fmt(value)); requestAnimationFrame(() => e.target.select()); }}
+        onChange={(e) => setText(e.target.value)} onBlur={() => { if (text != null) commit(); }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+          else if (e.key === 'Escape') { setText(null); e.currentTarget.blur(); }
+          else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            const base = text != null ? parse(text) ?? cur.current : cur.current;
+            const t = Math.max(0, +(base + (e.key === 'ArrowUp' ? 1 : -1) * step(e)).toFixed(3));
+            cur.current = t; onCommit(t); setText(fmt(t));
+          }
+        }}
+        title="Type a time like 1:43.69 or 103.69 (Enter), or nudge with ↑ ↓ (Shift = 0.1 s)" />
+      <span className="time-arrows">
+        <button type="button" tabIndex={-1} aria-label="Later by 0.01 s" onPointerDown={(e) => { e.preventDefault(); hold(e.shiftKey ? 0.1 : 0.01); }} onPointerUp={stop} onPointerLeave={stop}>▲</button>
+        <button type="button" tabIndex={-1} aria-label="Earlier by 0.01 s" onPointerDown={(e) => { e.preventDefault(); hold(e.shiftKey ? -0.1 : -0.01); }} onPointerUp={stop} onPointerLeave={stop}>▼</button>
+      </span>
+    </span>
   );
 }
 

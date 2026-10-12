@@ -496,3 +496,11 @@ button.linkish, :is(.game, .home, .buglist) button.linkish { background: none; b
 .sounds input.time-in { width: 96px; font: inherit; font-family: var(--title); font-weight: 700; font-size: 15px; padding: 5px 8px; border: 0; border-radius: 7px; color: var(--tx); background: rgba(255, 255, 255, .07); box-shadow: inset 0 0 0 1px var(--glass-line); }
 .sounds input.time-in:focus { outline: 2px solid var(--saber); }
 .sounds input.time-in.bad { box-shadow: inset 0 0 0 2px #ff6b62; }
+
+.time-box { display: inline-flex; align-items: stretch; }
+.sounds .time-box input.time-in { border-radius: 7px 0 0 7px; }
+.time-arrows { display: grid; grid-template-rows: 1fr 1fr; }
+.sounds .time-arrows button { padding: 0 8px; font-size: 9px; line-height: 1; border-radius: 0; box-shadow: inset 0 0 0 1px var(--glass-line); user-select: none; touch-action: none; }
+.sounds .time-arrows button:first-child { border-top-right-radius: 7px; }
+.sounds .time-arrows button:last-child { border-bottom-right-radius: 7px; }
+.sounds .time-arrows button:active { background: rgba(102, 204, 255, .3); }
