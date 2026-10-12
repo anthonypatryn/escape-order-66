@@ -15,3 +15,6 @@ encounter-deck-sheet.jpg
 .env*
 __pycache__/
 sfx-links.md
+
+.vercel
+.env*
