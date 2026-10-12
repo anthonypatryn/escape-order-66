@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadMusic, playMusic } from './sound';
+import { hold as holdMusic } from './music';
 
 // The start of every game, timed to the owner's recording (public/sfx/crawl.mp3) the way the films do it:
 // a blue line of text in silence → the opening hit + the logo, which recedes into the stars → the story crawls away →
@@ -43,6 +44,7 @@ export default function Crawl({ players, onPan, onDone }) {
 
   useEffect(() => {
     let live = true;
+    holdMusic(true); // the player steps aside (GameView lets it back in after Order 66)
     // start once the music is decoded (or after 3 s without it: the show runs silent)
     const begin = (buf) => {
       if (!live || phase.current !== 'load') return;

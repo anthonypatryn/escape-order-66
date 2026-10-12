@@ -34,7 +34,6 @@ function out() {
 export function setMuted(v) {
   muted = v; try { localStorage.setItem('eo-muted', v ? '1' : '0'); } catch { /* ignore */ }
   if (master && ctx) { const g = master.gain, t = ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(v ? 0 : 1, t + 0.08); }
-  if (v) stopMusic(0.3);
 }
 
 // ---------- recordings (when FILES lists one) ----------
@@ -161,36 +160,11 @@ export function playMusic(buf, { offset = 0, dur, fadeIn = 0.05, fadeOut = 1.5 }
   } catch { return null; }
 }
 
-// ---------- home-screen ambience: a low, slow space drone (Music channel) ----------
-let music = null;
-export function startMusic() {
-  if (muted || typeof window === 'undefined' || settings().music === false) return;
-  const lvl = settings().mix.music ?? 0.6; if (lvl <= 0) return;
-  try {
-    wakeCtx();
-    if (!music) {
-      const gain = ctx.createGain(); gain.gain.value = 0; gain.connect(out());
-      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 520; f.connect(gain);
-      const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.07; lg.gain.value = 260; lfo.connect(lg).connect(f.frequency); lfo.start();
-      const oscs = [36, 43, 48, 55].map((n, i) => { const o = ctx.createOscillator(); o.type = i % 2 ? 'sawtooth' : 'triangle'; o.frequency.value = NOTE(n) * (1 + i * 0.0015); const og = ctx.createGain(); og.gain.value = i ? 0.05 : 0.12; o.connect(og).connect(f); o.start(); return o; });
-      music = { gain, oscs, lfo };
-    }
-    const g = music.gain.gain, t = ctx.currentTime;
-    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0.35 * lvl, t + 2.5);
-  } catch { /* audio is optional */ }
-}
-export function stopMusic(fade = 1.2) {
-  if (!music || !ctx) return;
-  const m = music; music = null;
-  const g = m.gain.gain, t = ctx.currentTime;
-  g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + fade);
-  setTimeout(() => { m.oscs.forEach((o) => o.stop()); m.lfo.stop(); }, fade * 1000 + 100);
-}
-export function setMusicLevel(lvl) {
-  if (!music || !ctx) return;
-  if (lvl <= 0) { stopMusic(0.3); return; }
-  const g = music.gain.gain, t = ctx.currentTime;
-  g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0.35 * lvl, t + 0.3);
+// the music player's <audio> goes through the master volume too (so Mute silences it); once per element
+const routed = new WeakSet();
+export function routeMedia(el) {
+  if (routed.has(el)) return;
+  try { wakeCtx(); ctx.createMediaElementSource(el).connect(out()); routed.add(el); } catch { /* plays directly */ }
 }
 
 // phones only allow sound after a tap: the first tap wakes the audio up (and later taps revive it after a call / app switch)

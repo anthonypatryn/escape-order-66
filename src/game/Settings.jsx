@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { useSettings, setSettings } from './prefs';
 import { Chips, Toggle } from './ui';
-import { play, setMusicLevel, startMusic, stopMusic } from './sound';
+import { play } from './sound';
+import { applyVolume } from './music';
 
 const LEVELS = [[0, 'Off'], [0.35, 'Low'], [0.7, 'Medium'], [1, 'High']];
 const CHANNELS = [
   ['saber', 'Lightsaber', 'Ahsoka’s moves and Satine’s switches', 'saber'],
   ['fx', 'Effects', 'Cards, blasters, banners, encounters, your-turn chirp', 'kill'],
-  ['music', 'Music', 'The space hum on the home screen, the opening jump and the winner’s fanfare', null],
+  ['music', 'Music', 'The music player, the opening crawl, Order 66 and the winner’s fanfare', null],
 ];
 
 // Settings drawer (remembered on this device)
@@ -46,7 +47,7 @@ export default function SettingsDrawer({ onClose }) {
                 <div><b>{label}</b><small>{hint}</small></div>
                 <Chips small value={s.mix[k]} onChange={(v) => {
                   setSettings({ mix: { [k]: v } });
-                  if (k === 'music') { if (v > 0) { startMusic(); setTimeout(() => stopMusic(), 2500); } setMusicLevel(v); return; }
+                  if (k === 'music') { applyVolume(); return; }
                   if (v > 0) setTimeout(() => play(sample), 30);
                 }} options={LEVELS} />
               </div>

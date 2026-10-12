@@ -13,6 +13,8 @@ import SettingsDrawer from './Settings';
 import BugReport from './BugReport';
 import EndScreen from './EndScreen';
 import Crawl from './Crawl';
+import MusicPlayer from './MusicPlayer';
+import { hold as holdMusic } from './music';
 
 const SPEEDS = [1, 2, 4];
 const COARSE = typeof window !== 'undefined' && !!window.matchMedia?.('(hover: none)').matches;
@@ -135,11 +137,13 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
   const finishCrawl = (panned = false) => {
     setCrawl(false);
     if (panned) {
+      later(() => holdMusic(false), 6400);
       play('order66');
-      if (!prefs.calm) { setOrder66(true); later(() => setOrder66(false), 3600); }
-      later(() => start?.(), 2600);
+      if (!prefs.calm) { setOrder66(true); later(() => setOrder66(false), 6500); }
+      later(() => start?.(), prefs.calm ? 400 : 6000);
       return;
     }
+    holdMusic(false);
     if (!prefs.calm) { setDealing(true); later(() => setDealing(false), 1700); }
     later(() => start?.(), prefs.calm ? 0 : 1400);
   };
@@ -246,6 +250,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
           <TurnSteps phase={state.phase} />
           <div className="game-top-r">
             {lab && <span className="lab-badge">LAB</span>}
+            <MusicPlayer compact />
             {game && <SpeedMenu speeds={speeds} row={speedRow} />}
             <button onClick={() => setRules('turn')} title="How to play (R) · keyboard keys (?)">Rules<Kbd k="R" /></button>
             <button onClick={() => setBug(true)}>Report<span className="wide-only"> a</span> bug</button>
@@ -263,7 +268,13 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
             <Galaxy state={state} moves={moves} preview={preview} onPreview={COARSE ? null : setHover} onPick={tapMove}
               targets={targets} onTarget={(k) => answer(k)} glide={glide} ghosts={ghosts} dealing={dealing} hoverChar={hoverChar ?? targetReq?.first} onHoverChar={setHoverChar} />
             {yourTurn}
-            {order66 && <div className="order66" role="status"><small>Transmission</small>Execute Order 66</div>}
+            {order66 && (
+              <div className="order66" role="status" aria-label="Transmission: Execute Order 66">
+                <div className="holo-bust"><img src="/art/palpatine-holo.png" alt="" /><i className="holo-lines" /></div>
+                <i className="holo-beam" />
+                <div className="order66-text"><small>Transmission</small>Execute Order 66</div>
+              </div>
+            )}
             {callout && <Callout c={callout} />}
             {phone && <BannerStrip state={state} />}
           </div>
@@ -286,6 +297,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
           <aside className="drawer phone-menu" onClick={(e) => e.stopPropagation()} aria-label="Menu">
             <div className="drawer-head"><h2>Menu</h2><button onClick={() => setMenu(false)}>Close</button></div>
             <div className="drawer-body">
+              <MusicPlayer />
               {game && <div className="menu-row"><span>People’s turns</span>{speedRow('human')}</div>}
               {game && <div className="menu-row"><span>Computer turns</span>{speedRow('ai')}</div>}
               <div className="menu-grid">

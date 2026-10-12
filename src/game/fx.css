@@ -146,16 +146,31 @@
 .game.panning .galaxy::before { animation: planet var(--pan) ease-out both; }
 @keyframes planet { 0%, 40% { box-shadow: 0 0 120px 60px rgba(90, 160, 255, .35), inset 0 0 0 1px rgba(120, 170, 255, .3); } 100% { box-shadow: inset 0 0 0 1px rgba(120, 170, 255, .08); } }
 
-/* "Execute Order 66": a red hologram transmission over the Galaxy, right after the tilt down */
-.order66 { position: absolute; left: 50%; top: 44%; z-index: 41; transform: translate(-50%, -50%); pointer-events: none; display: grid; justify-items: center; gap: 4px; white-space: nowrap;
-  font-family: var(--logo); font-size: clamp(30px, 6vw, 70px); text-transform: uppercase; letter-spacing: .08em; color: #ff5148;
-  text-shadow: 0 0 10px rgba(255, 60, 50, .9), 0 0 40px rgba(255, 40, 30, .6); padding: 14px 34px; border-radius: 12px; background: rgba(30, 0, 0, .55);
-  box-shadow: inset 0 0 0 1px rgba(255, 80, 70, .5), 0 0 40px rgba(255, 40, 30, .35);
-  background-image: repeating-linear-gradient(0deg, rgba(255, 90, 80, .12) 0 2px, transparent 2px 5px);
-  animation: order66 3.6s steps(1, end) forwards, order66fade 3.6s ease-in forwards; }
-.order66 small { font-family: var(--title); font-weight: 800; font-size: .26em; letter-spacing: .4em; color: #ffb3ad; }
-@keyframes order66 { 0% { opacity: 0; } 4% { opacity: .9; } 8% { opacity: .2; } 12% { opacity: 1; } 20% { opacity: .6; transform: translate(-50.6%, -50%); } 24% { opacity: 1; transform: translate(-50%, -50%); } 60% { opacity: .75; } 63% { opacity: 1; } }
-@keyframes order66fade { 0%, 78% { filter: none; } 100% { filter: blur(6px); opacity: 0; } }
+/* "Execute Order 66": the Emperor as a flickering blue hologram (head and shoulders) while the owner's clip plays,
+   then a red EXECUTE ORDER 66 under him. 6.5 s; the first turn starts as it fades. */
+.order66 { position: absolute; inset: 0; z-index: 41; pointer-events: none; display: grid; place-items: center; align-content: center; gap: 0;
+  background: radial-gradient(60% 55% at 50% 50%, rgba(0, 10, 30, .72), rgba(0, 0, 0, .35) 70%, transparent); animation: o66bg 6.5s ease forwards; }
+@keyframes o66bg { 0% { opacity: 0; } 6%, 88% { opacity: 1; } 100% { opacity: 0; } }
+.holo-bust { position: relative; width: min(44%, 340px, 46vh); aspect-ratio: 520 / 584; animation: holoflick 6.5s steps(1, end) forwards, holojitter 2.3s steps(1, end) infinite;
+  mask-image: linear-gradient(to bottom, #000 70%, transparent 98%); -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 98%);
+  filter: drop-shadow(0 0 18px rgba(100, 200, 255, .65)); }
+.holo-bust img { width: 100%; height: 100%; opacity: .9; mix-blend-mode: screen; }
+.holo-lines { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 10, 25, .55) 0 2px, transparent 2px 4px); animation: scan 2.5s linear infinite; mix-blend-mode: multiply; }
+.holo-bust::after { content: ''; position: absolute; left: 0; right: 0; height: 18%; top: -20%; background: linear-gradient(transparent, rgba(160, 230, 255, .35), transparent); animation: holosweep 2.2s linear infinite; }
+@keyframes holosweep { to { top: 110%; } }
+@keyframes holoflick {
+  0% { opacity: 0; transform: scaleY(.02); } 3% { opacity: .9; transform: scaleY(.02); } 6% { opacity: .9; transform: scaleY(1); }
+  8% { opacity: .3; } 10% { opacity: .95; } 14% { opacity: .5; } 16% { opacity: .9; } 40% { opacity: .78; } 41% { opacity: .95; } 66% { opacity: .55; } 67% { opacity: .9; }
+  90% { opacity: .9; transform: scaleY(1); } 94% { opacity: .5; transform: scaleY(.04); } 97% { opacity: .9; transform: scaleY(.01); } 100% { opacity: 0; transform: scaleY(.01); } }
+@keyframes holojitter { 0% { translate: 0 0; } 31% { translate: 3px 0; } 33% { translate: 0 0; } 71% { translate: -2px 1px; } 73% { translate: 0 0; } }
+.holo-beam { width: min(46%, 360px); height: 14px; margin-top: -6px; border-radius: 50%; background: radial-gradient(closest-side, rgba(150, 225, 255, .9), rgba(80, 180, 255, .25) 60%, transparent);
+  filter: blur(2px); animation: o66bg 6.5s ease forwards; }
+.order66-text { display: grid; justify-items: center; gap: 2px; margin-top: 10px; white-space: nowrap; padding: 8px 26px; border-radius: 10px;
+  font-family: var(--logo); font-size: clamp(24px, 4.6vw, 54px); text-transform: uppercase; letter-spacing: .08em; color: #ff5148;
+  text-shadow: 0 0 10px rgba(255, 60, 50, .9), 0 0 40px rgba(255, 40, 30, .6); background: rgba(30, 0, 0, .55); box-shadow: inset 0 0 0 1px rgba(255, 80, 70, .5), 0 0 40px rgba(255, 40, 30, .35);
+  opacity: 0; animation: o66text 6.5s steps(1, end) forwards; }
+.order66-text small { font-family: var(--title); font-weight: 800; font-size: .28em; letter-spacing: .4em; color: #ffb3ad; }
+@keyframes o66text { 0%, 30% { opacity: 0; } 32% { opacity: .9; } 34% { opacity: .2; } 36% { opacity: 1; } 60% { opacity: .75; } 62%, 90% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ---------- the end ---------- */
 .end { position: fixed; inset: 0; z-index: 80; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 30px 16px 40px; color: var(--tx);

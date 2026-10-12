@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Logo, CharCard } from './Cards';
 import { CpuIcon, PersonIcon, useConfirm, LevelPick, Chips } from './ui';
 import { loadSaves, deleteSave } from './resume';
-import { startMusic, stopMusic } from './sound';
+import MusicPlayer from './MusicPlayer';
 import { playerColor } from './prefs';
 import { RulesDrawer } from './Extras';
 
@@ -14,12 +14,6 @@ export default function Home({ onStart, onResume }) {
   const [seats, setSeats] = useState(loadSeats);
   const [first, setFirst] = useState('random');
   const [rules, setRules] = useState(false);
-  useEffect(() => {
-    startMusic();
-    const again = () => startMusic(); // browsers block sound until the first tap
-    window.addEventListener('pointerdown', again, { once: true });
-    return () => { window.removeEventListener('pointerdown', again); stopMusic(); };
-  }, []);
   const set = (i, patch) => setSeats((ps) => ps.map((p, k) => (k === i ? { ...p, ...patch } : p)));
   const valid = seats.every((p) => p.name.trim());
   const go = () => {
@@ -31,6 +25,7 @@ export default function Home({ onStart, onResume }) {
     <div className="home">
       <div className="home-bg" aria-hidden="true" />
       <div className="stars" aria-hidden="true"><i /><i /><i /></div>
+      <div className="home-music"><MusicPlayer /></div>
       <div className="home-card">
         <Logo size="lg" />
         <div className="home-ahsoka"><CharCard id="ahsoka" /></div>
