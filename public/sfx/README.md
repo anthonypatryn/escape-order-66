@@ -19,7 +19,7 @@ Several clips for one sound = one picked at random. A sound with no file stays s
 | `banner` | a banner changes hands (`down` = back to the middle) |
 | `encounter` | an encounter is played |
 | `swap` | Satine switches two cards — owner's clip `swap.mp3` |
-| `turn` | your move |
+| `turn` | your move — owner's clip `turn.mp3` (R2-D2) |
 | `crawl.mp3` | the opening crawl music (owner's file; Crawl.jsx times the logo / crawl / tilt-down to it) |
 | `hyper` | not used any more (the crawl ends with a tilt down now) |
 | `bighaul` | 3+ cards taken in one move — owner's clips `haul-a/b.mp3` (random) |
