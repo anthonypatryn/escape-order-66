@@ -109,17 +109,17 @@
  "enc-krell": [
   {
    "file": "enc-krell",
-   "start": 64,
-   "len": 4,
-   "vol": 3.0,
+   "start": 64.28,
+   "len": 4.8,
+   "vol": 3,
    "fade": 0.3
   }
  ],
  "enc-huyang": [
   {
    "file": "enc-huyang",
-   "start": 172,
-   "len": 4,
+   "start": 172.27,
+   "len": 4.4,
    "vol": 1.8,
    "fade": 0.3
   }
@@ -136,8 +136,8 @@
  "enc-sidious": [
   {
    "file": "enc-sidious",
-   "start": 0,
-   "len": 5.5,
+   "start": 3.9,
+   "len": 0.59,
    "vol": 3.2,
    "fade": 0.4
   }
@@ -163,9 +163,9 @@
  "enc-omega": [
   {
    "file": "enc-omega",
-   "start": 24,
-   "len": 4,
-   "vol": 3.0,
+   "start": 25.09,
+   "len": 3.33,
+   "vol": 3,
    "fade": 0.3
   }
  ],
