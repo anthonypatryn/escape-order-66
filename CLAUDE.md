@@ -3,21 +3,30 @@
 Digital version of **Escape Order 66**, the owner's Star Wars reskin of *Game of Thrones: Hand of the King*: move Ahsoka
 around a 6 × 6 Galaxy of character cards, collect factions, hold the most banners when she can't move.
 Web app: Vite 7 + React 19, plain CSS, no 3D (top-down board). GitHub `anthonypatryn/escape-order-66` (branch `main`),
-Vercel project linked (push `main` → deploy) → https://escape-order-66.vercel.app
+Vercel project `escape-order-66` (push `main` → deploy) → https://escape-order-66.vercel.app (**private: password gate**).
 
-**Status (2026-10-12):** first build. Solo + local only: 2 seats, each a person (pass-and-play on one screen, no hand-off
-screen) or a computer (Youngling / Padawan / Jedi Master). No online play yet. Private, friends-only game: the owner is fine
-with Star Wars art and (later) Star Wars sounds.
+**Status (2026-10-12, end of day 1):** LIVE and playable. Solo + local only: 2 seats, each a person (pass-and-play on one
+screen, no hand-off screen) or a computer (Youngling / Padawan / Jedi Master). No online play yet. Friends-only game: the owner
+uses Star Wars art, music and sound clips (their own files). Open items + ideas: `docs/ROADMAP.md`.
 
 ## Working with the owner (same as Long Shot / Guillotine)
 - Look and feel follow **Long Shot** (`../Long-shot`, read its CLAUDE.md): dark see-through glass panels, branded controls only
   (no confirm()/alert()/select/checkbox — use `ui.jsx`), big readable text, keyboard keys with little key labels, lots of motion.
+- **Test the way the owner uses it** before saying it works: single clicks (not triple-click / scripted selects), real typing,
+  phone widths (owner's iPhone is 440 px wide, Chrome on iOS). Owner called out sloppy testing on 2026-10-12 (the time boxes).
 - Owner tests by playing; files bugs at `/?view=bugs`. When they paste BUG-n and the fix is pushed, mark it fixed
-  (POST `/api/bugs` `{action:'fix', nos:[n], note}` with header `x-bug-pin`).
+  (POST `/api/bugs` `{action:'fix', nos:[n], note}` with header `x-bug-pin` — but the site password gate blocks calls from here,
+  so ask the owner to tick them in the bug list). BUG-1 (iPhone music volume) + BUG-2 (home screen too wide on iPhone) fixed,
+  not yet marked fixed by the owner.
 - Commit + push after each chunk of work. Before committing: `npx oxlint src`, `npx vite build`, `node tools/simulate.mjs 200` (must print `errors: 0`).
-- After a push, Vercel needs ~1 min: check the live JS/CSS hash changed before saying it's live.
+- After a push: `vercel ls escape-order-66` (the CLI is linked + logged in) until the new deployment is Ready — the live HTML is
+  behind the password, so `curl` can't check the JS hash any more. A request can still hit the old deployment for ~1 min.
 - Rewriting git history / force-pushing needs the owner's explicit OK.
-- `ART/` = the owner's print files (PDFs, InDesign, Illustrator). Gitignored. `python tools/art.py` makes the web copies in `public/art/`.
+- `ART/` = the owner's print files (PDFs, InDesign, Illustrator). Gitignored. `python tools/art.py` makes the web copies in `public/art/`
+  (cards, encounters, faction hexes, the logo `logo.ai` → `public/art/logo.svg`).
+- New sound files the owner sends: copy to `public/sfx/<slot>.mp3`, measure in the browser (decodeAudioData: duration, where the
+  sound starts/ends, peak, RMS of the audible part), set `vol` so it lands near −14 dB RMS without the peak passing ~0.9 after ×0.8,
+  add to `src/data/sounds.json`. The owner gives timestamps like "1:04-1:08" for long scene files → `start` 64, `len` 4.
 
 ## Rules as implemented (rulebook: `ART/Rulebook.pdf`)
 - Setup: 35 characters + Ahsoka shuffled into the 6 × 6 Galaxy. Encounter deck = **14** cards (the JPG folder has Bo-Katan twice:
@@ -37,6 +46,17 @@ with Star Wars art and (later) Star Wars sounds.
   the biggest faction.
 - Not built: 3–4 players, team variant, The Ones (owner: just 2 players).
 
+## The opening (owner said the timing is PERFECT — don't change it without asking)
+`Crawl.jsx` is timed to the owner's `public/sfx/crawl.mp3` (constants at the top, seconds after the music starts at OFFSET 22.5 s
+of the file): blue "A short time after the Clone Wars…" line in silence → the hit at 28.96 s in the file = the owner's logo
+slams in full screen and recedes → the crawl (owner-approved text: their rulebook intro + the game's lines, only the LAST
+paragraph ends with "….") rises until the music softens at 111.8 s → **tilt down** (8.4 s, `.panning`): crawl sweeps up, three star
+layers + a small moon, a cratered moon and a tan planet with a blue atmosphere (all CSS, original) rise at different speeds, the
+Galaxy rises over the planet, cards deal in → **Execute Order 66**: owner's `order66.mp3` + the owner's Palpatine image as a blue
+flickering hologram (`public/art/palpatine-holo.png`, head + shoulders, tint baked by a script) + red "EXECUTE ORDER 66" text that
+appears ~2.6 s in (after the line is spoken) → first turn starts at ~6 s. Skip (Space / tap) = 3.4 s tilt + the Order 66 moment.
+The music player pauses for all of it (`music.hold`).
+
 ## Code map
 | Path | What |
 |---|---|
@@ -44,22 +64,34 @@ with Star Wars art and (later) Star Wars sounds.
 | `src/game/rules.js` | Pure helpers: `legalMoves`, `countFor`, `bannerHolder`, `standings`, `galaxyCount` |
 | `src/game/engine.js` | `Game` class, Long Shot's shape: async turn loop, every decision through `ask(player, req)` (types `move`, `encounter`, `target` (verb take/kill/swap), `faction`); seeded RNG; `trail` of people's answers → `Game.rewound()` = undo + resume. Log lines carry data for animations (`move` has from/to/path/take/taken, `take`/`kill` have char + from, `banner` has faction/from/to, `encounter` has enc). `hold()` = real-time animation waits, `read()` = encounter shown big (READ_MS, `skipRead`), `pause()` = sped-up waiting |
 | `src/game/ai.js` | LEVELS Youngling / Padawan / Jedi Master. Light snapshot + `value()` (locked banners count fully, contested by holder + lead, bigger factions weigh more); Padawan = 1 ply, Master = 3-ply alpha-beta; encounters / targets / Satine swap / Hondo faction scored by the same value. `node tools/simulate.mjs 450 levels` ≈ 7% / 56% / 88% |
-| `src/game/GameView.jsx` | Game screen. Desktop: left = Banners rack (counts, galaxy left, 🔒 locked) + Encounters; centre = Galaxy + question docked under it; right = Players (banners, play area by faction, kept encounters) + log. Moments from new log ids: Ahsoka glide + saber trail, taken cards fly to the play area, kill = red burn + blaster burst, banner flies + callout, encounter = hologram card (Space dismisses). Keys: arrows = direction (again = cycle), 1–9, Space, Ctrl Z, R, M, F, ?. Touch: first tap previews, second tap moves |
+| `src/game/GameView.jsx` | Game screen. Desktop: left = Banners rack (counts, galaxy left, 🔒 locked) + Encounters; centre = Galaxy + question docked under it; right = Players (banners, play area by faction, kept encounters) + log; top bar has the music player. Moments from new log ids: Ahsoka glide + saber trail, taken cards fly to the play area, kill = red burn + blaster burst, banner flies + callout, encounter = hologram card (Space dismisses). Crawl → `startPan` / `finishCrawl(panned)` → Order 66 overlay. Keys: arrows = direction (again = cycle), 1–9, Space, Ctrl Z, R, M, F, ?. Touch: first tap previews, second tap moves |
 | `src/game/Galaxy.jsx` | The 6 × 6 board: targets glow in faction colour with a direction badge, hover/arrow preview lights the path and lifts the cards you'd take; target picks (take green / kill red / swap cyan); Satine FLIP swap; ghosts (cards leaving); Ahsoka piece (CSS left/top transition) with arrow nubs |
-| `src/game/Crawl.jsx` | Opening crawl → hyperspace jump → deal. Skippable (Space/tap); Settings → Opening crawl |
-| `src/game/EndScreen.jsx` | Banners land one by one per player, winner called + fanfare, tiebreak note, stats, Rematch / New game / See the Galaxy |
-| `src/game/Home.jsx` | Setup: 2 seats (name · person/computer · difficulty), who goes first, Saved games (Resume / Delete), space-hum music |
-| `src/game/Lab.jsx` | **Debug lab `/?view=lab`** (Long Shot's `/?view=moments` idea): the real game screen on a game that only moves when pushed — play one turn, run normally, fire any encounter for the current player, kill/take/switch/flip-banner/near-end/end-screen/crawl, seed + seat controls, raw state |
-| `src/game/BugReport.jsx`, `BugList.jsx`, `lib/bugs.js`, `api/bugs.js` | Copied from Long Shot. Store = the shared Upstash DB (`KV_REST_API_URL/TOKEN`), keys `escape-66:bugs*`; PIN = Vercel `BUG_PIN` (dev: `.data/bugs.json`, PIN 1234) |
-| `src/data/sounds.json`, `src/data/soundSlots.js`, `src/game/SoundEditor.jsx`, `lib/sounds.js`, `api/sounds.js` | **Owner's clips**: sounds.json = `{ slot: [{ file, start, len, vol, fade }] }` (one picked at random; files in public/sfx). **Sound editor `/?view=sounds`**: every slot (soundSlots.js), waveform + zoom strip with draggable start/end, volume + loudness meter (target −14 dB, Match level), fade, listen with playhead, set start/end here. Save (BUG_PIN) → `/api/sounds` (Upstash `escape-66:sounds`, dev `.data/sounds.json`) = overrides loaded by every page on start (`loadSoundOverrides`); Copy for Claude = JSON to bake into sounds.json. `virtual:sfx-files` (vite.config) lists public/sfx for the file picker |
-| `src/game/sound.js` | Plays a slot's clips (sounds.json + editor overrides) or falls back to the synth kit (take, encounter, banner, click, win…). `playMusic` = the crawl; `routeMedia` = the music player through the master volume. Sound hooks: `useSounds` in useGame.js (log lines → slots, incl. last-one, steal, lock, fizzle, extra-turn, ai-turn, game-over, enc-<id>) |
+| `src/game/Crawl.jsx` | The opening (see above). `loadMusic`/`playMusic` from sound.js; visuals start when the music does |
+| `src/game/EndScreen.jsx` | Banners land one by one per player → winner called + the loser's scream (`lose`, owner's clip, whoever won) + the loser's plaque shakes → fanfare (`win`) 2.4 s later; tiebreak note, stats, Rematch / New game / See the Galaxy |
+| `src/game/Home.jsx` | Setup: 2 seats (name · person/computer · difficulty), who goes first, Saved games (Resume / Delete); music player top-right; links to bug list / lab / sound editor |
+| `src/game/music.js`, `MusicPlayer.jsx` | **Music player** (Guillotine's): one playlist shared by home + game (TRACKS: the owner's Ahsoka theme `public/sfx/home.mp3`), starts on the first tap, prev / play / next, seek, volume. Volume = a Web Audio gain via `routeMedia` (iPhone ignores `<audio>.volume`, BUG-1). `hold()` pauses it for the crawl / Order 66. Never plays on `/?view=sounds` |
+| `src/game/Lab.jsx` | **Debug lab `/?view=lab`** (Long Shot's `/?view=moments` idea): the real game screen on a game that only moves when pushed — play one turn, run normally, fire any encounter for the current player, kill/take/switch/flip-banner/near-end/end-screen/crawl, seed + seat controls, raw state. Plays the game's sounds |
+| `src/game/BugReport.jsx`, `BugList.jsx`, `lib/bugs.js`, `api/bugs.js` | Copied from Long Shot. Store = the shared Upstash DB `wiw-forstall-kv` (`KV_REST_API_URL/TOKEN`), keys `escape-66:bugs*`; PIN = Vercel `BUG_PIN` (dev: `.data/bugs.json`, PIN 1234) |
+| `src/data/sounds.json`, `src/data/soundSlots.js` | **Every sound slot** (soundSlots: id, what, synth fallback?) and the owner's clips per slot: `{ slot: [{ file, start, len, vol, fade }] }`, one picked at random. `file` = a name in `public/sfx/` or `blob:<pathname>` (uploaded) |
+| `src/game/SoundEditor.jsx`, `lib/sounds.js`, `api/sounds.js` | **Sound editor `/?view=sounds`** (linked from Home): pick a slot; per clip: whole-file waveform + zoom strip (drag edges), Start/End boxes (`TimeInput`: one click selects all, type `1:43.69` or `103.69` + Enter, ▲▼ steppers 0.01 s with hold-to-repeat, ↑/↓ keys, Shift = 0.1 s, invalid → red outline, kept), volume + loudness meter (target −14 dB, Match level), fade, listen with playhead, set start/end at the playhead. **Save (live for everyone)** with BUG_PIN → `/api/sounds` (Upstash `escape-66:sounds` = overrides of sounds.json, loaded by every page on start via `loadSoundOverrides`). **Copy for Claude** → owner pastes JSON → bake it into sounds.json. **⬆ Upload a sound file** (below) |
+| `api/upload.js`, `api/sfx.js` | **Uploads** to the owner's **private** Vercel Blob store `escape-order-66-sounds` (connected with OIDC: env `BLOB_STORE_ID` + `BLOB_WEBHOOK_PUBLIC_KEY`, no read-write token). Editor: `POST /api/upload?check=1 {pin}` first (shows the real reason on failure), then `uploadPresigned` (`@vercel/blob/client`, `access: 'private'`) with `handleUploadPresigned` + `issueSignedToken` on the server (whole-store token: names get a random suffix). GET `/api/upload` = uploaded files for the picker (☁). Playback: `/api/sfx?p=<pathname>` **streams** the file through the site (a redirect to the store's signed link couldn't be read by the browser). Upload names: spaces → dashes. Dev: uploads save into `public/sfx/` (`/api/upload-dev`) |
+| `src/game/sound.js` | `play(slot)`: the slot's clips (sounds.json + editor overrides; `[]` = silent) or the synth kit fallback (take, encounter, banner, click, win). `playClip`, `decodeFile`, `preloadSounds` (face-up encounters' voice lines load 8 s into a game: some files are whole scenes, up to 6.6 MB). `playMusic` (the crawl), `routeMedia` (music player). Sound hooks = `useSounds` in useGame.js: move → saber + take per card + bighaul (3+), kill, swap, encounter + `enc-<id>` voice line, banner / steal / banner-down / lock, last-one, fizzle, extra-turn, ai-turn, game-over; GameView: deal, undo, order66; Extras: turn; EndScreen: lose, win |
+| `middleware.js` | **Private site**: password gate on everything (Vercel env `SITE_PASSWORD`, owner set it 2026-10-12; no var = open). Login page, remembered a year (cookie `eo-pass`); friends' links `?key=PASSWORD` sign in and drop the key from the URL |
 | `src/game/resume.js` | Saved games in localStorage (`eo-saves`), setup + trail + open request |
-| `src/game/prefs.js`, `Settings.jsx` | Text size, calm motion, opening crawl, move hints, mixer (saber / fx / music). Player colours: Jedi blue `#3fb6ff` vs Sith red `#ff4655` |
-| `src/game/Phone.jsx`, `phone.css` | Long Shot's phone layout: ≤760 px → Galaxy fills, banner strip under it, question docked, nav Galaxy / Encounters / Players / Log + sheets, ⋯ menu |
-| `src/game/game.css`, `fx.css`, `src/index.css` | Layout/panels/controls · all animations · tokens + type (Exo 2 titles/numbers, Barlow reading, Russo One logo) |
+| `src/game/prefs.js`, `Settings.jsx` | Text size, calm motion, opening crawl, move hints, mixer (saber / fx / music). Player colours: Jedi blue `#3fb6ff` vs Sith red `#ff4655` (owner's pick) |
+| `src/game/Phone.jsx`, `phone.css` | Long Shot's phone layout: ≤760 px → Galaxy fills, banner strip under it, question docked, nav Galaxy / Encounters / Players / Log + sheets, ⋯ menu (has the music player). Home card fits phone widths (BUG-2) |
+| `src/game/game.css`, `fx.css`, `src/index.css` | Layout/panels/controls (+ sound editor) · all animations (crawl, tilt, planets, holograms) · tokens + type (Exo 2 titles/numbers, Barlow reading); the logo is the owner's SVG (`Logo` in Cards.jsx) |
 | `tools/art.py`, `tools/simulate.mjs` | Art pipeline · headless AI games |
 
+## Vercel setup (all done 2026-10-12)
+Env vars on the project: `SITE_PASSWORD` (gate), `BUG_PIN` (bug list + sound editor + uploads; the owner's PIN is in Claude's
+memory), Upstash `wiw-forstall-kv` connected (`KV_*`, `REDIS_URL`), Blob store `escape-order-66-sounds` (private) connected
+(`BLOB_STORE_ID`, `BLOB_WEBHOOK_PUBLIC_KEY`). This folder is `vercel link`ed (`.vercel/`, `.env.local` with a dev OIDC token;
+both gitignored). Useful: `vercel env ls`, `vercel ls escape-order-66`, `vercel redeploy https://escape-order-66.vercel.app --target production`
+(needed after env var changes), `vercel logs --since 30m --no-branch -j` (function errors; api/upload + api/sfx log failures).
+
 ## Dev
-- `npm run dev` (preview config `escape-66`, port 5191 in `.claude/launch.json`).
+- `npm run dev` (preview config `escape-66`, port 5191 in `.claude/launch.json`). The dev server sometimes dies between turns:
+  `preview_start` again. Editing `vite.config.js` restarts it. (Writing files with Python heredocs: watch for `\0` turning into a
+  real NUL byte and `'` breaking bash — use a script file in the scratchpad.)
 - Pages: `/` game · `/?view=lab` debug lab · `/?view=bugs` bug list · `/?view=cards` card + banner review · `/?view=sounds` sound editor.
-- Private site: `middleware.js` = password gate (Vercel env `SITE_PASSWORD`, set by the owner 2026-10-12); `?key=PASSWORD` links sign friends in.
