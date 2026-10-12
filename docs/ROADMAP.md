@@ -16,8 +16,8 @@
 - Desktop at full width hasn't been eyeballed (the browser pane is 800 px); the owner plays on desktop + iPhone.
 
 - **Online play** built 2026-10-12 (tested in two tabs: join, refresh rejoin, host reload → same code, drop → computer plays →
-  hand back). Not yet tested on two real devices / phone data. Relay keys (`CF_TURN_KEY_ID`, `CF_TURN_API_TOKEN`) are only on
-  Long Shot's Vercel project so far: the owner copies them to escape-order-66 (then redeploy), or online works direct-only.
+  hand back). Not yet tested on two real devices / phone data. Relay credentials come from Long Shot's `/api/turn`
+  (its Cloudflare key is Sensitive in Vercel, can't be copied); if Long Shot goes away, add a TURN key to this project.
 
 ## Ideas / not built
 - Online extras Long Shot has: chat, quick reactions, cloud save codes.
