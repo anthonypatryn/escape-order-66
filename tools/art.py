@@ -51,16 +51,49 @@ def main():
     tb = Image.open(os.path.join(ART, 'Tokens', 'Tokens.png')).convert('RGBA')
     tb.thumbnail((280, 280), Image.LANCZOS)
     tb.save(os.path.join(OUT, 'token-back.png'), optimize=True)
-    # home-screen icon: Ahsoka's card, full bleed
-    icon = Image.open(os.path.join(CARDS, 'Escape Order 66.jpg')).convert('RGB').crop((200, 200, 698, 698)).resize((180, 180), Image.LANCZOS)
-    os.makedirs(os.path.join(ROOT, 'public', 'icons'), exist_ok=True)
-    icon.save(os.path.join(ROOT, 'public', 'icons', 'eo66-icon-180.png'))
-    icon.resize((64, 64), Image.LANCZOS).save(os.path.join(ROOT, 'public', 'favicon.png'))
     # the owner's logo (vector): crisp at any size
     import fitz
     logo = fitz.open(os.path.join(DECK, 'Links', 'logo.ai'))[0]
     open(os.path.join(OUT, 'logo.svg'), 'w', encoding='utf8').write(logo.get_svg_image(text_as_path=True))
+    # favicon: Ahsoka's card, full bleed
+    card = Image.open(os.path.join(CARDS, 'Escape Order 66.jpg')).convert('RGB')
+    card.crop((200, 200, 698, 698)).resize((64, 64), Image.LANCZOS).save(os.path.join(ROOT, 'public', 'favicon.png'))
+    # iPhone home-screen icon: Ahsoka's medallion over the logo (iOS rounds the corners itself)
+    home_icon(card, logo)
     print('done')
+
+
+def home_icon(card, logo_page):
+    import fitz
+    from PIL import ImageDraw, ImageFilter
+    N = 720
+    pix = logo_page.get_pixmap(matrix=fitz.Matrix(4, 4), alpha=True)
+    logo = Image.frombytes('RGBA', (pix.width, pix.height), pix.samples)
+    logo = logo.crop(logo.getbbox())
+    bg = card.crop((201, 236, 698, 733)).resize((N, N), Image.LANCZOS)  # medallion high, name plate under the logo
+    shade = Image.new('L', (N, N), 0)
+    d = ImageDraw.Draw(shade)
+    for y in range(N):
+        t = max(0, (y - N * 0.6) / (N * 0.15))
+        d.line([(0, y), (N, y)], fill=int(250 * min(1, t) ** 1.2))
+    bg = Image.composite(Image.new('RGB', (N, N), (5, 7, 13)), bg, shade).convert('RGBA')
+    w = int(N * 0.9)
+    lg = logo.resize((w, int(logo.height * w / logo.width)), Image.LANCZOS)
+    pos = ((N - w) // 2, int(N * 0.93) - lg.height)
+    shadow = Image.new('RGBA', lg.size, (0, 0, 0, 255))
+    shadow.putalpha(lg.split()[3])
+    glow = Image.new('RGBA', (N, N), (0, 0, 0, 0))
+    glow.paste(shadow, pos, shadow)
+    glow = glow.filter(ImageFilter.GaussianBlur(10))
+    bg.alpha_composite(glow)
+    bg.alpha_composite(glow)
+    bg.alpha_composite(lg, pos)
+    icon = bg.convert('RGB')
+    os.makedirs(os.path.join(ROOT, 'public', 'icons'), exist_ok=True)
+    for size in (180, 192, 512):
+        icon.resize((size, size), Image.LANCZOS).save(os.path.join(ROOT, 'public', 'icons', f'eo66-icon-{size}.png'), optimize=True)
+    # iOS also asks for this exact path on its own
+    icon.resize((180, 180), Image.LANCZOS).save(os.path.join(ROOT, 'public', 'apple-touch-icon.png'), optimize=True)
 
 
 if __name__ == '__main__':

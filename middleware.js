@@ -5,6 +5,8 @@
 export const config = { matcher: '/:path*' };
 
 const COOKIE = 'eo-pass';
+// the home-screen icon + favicon stay public: iOS fetches them without the sign-in cookie
+const OPEN = /^\/(favicon\.png|apple-touch-icon(-precomposed)?\.png|manifest\.webmanifest|icons\/[\w-]+\.png)$/;
 const YEAR = 365 * 86400;
 
 async function token(pass) {
@@ -18,8 +20,9 @@ const setCookie = (value) => `${COOKIE}=${value}; Path=/; Max-Age=${YEAR}; HttpO
 export default async function middleware(request) {
   const pass = (process.env.SITE_PASSWORD ?? '').trim();
   if (!pass) return; // not configured: open
-  const good = await token(pass);
   const url = new URL(request.url);
+  if (OPEN.test(url.pathname)) return;
+  const good = await token(pass);
 
   // the login form posts here
   if (url.pathname === '/__login' && request.method === 'POST') {
@@ -43,7 +46,8 @@ export default async function middleware(request) {
 function page(next, wrong) {
   const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Escape Order 66</title><style>
+<title>Escape Order 66</title><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" href="/favicon.png">
+<meta name="apple-mobile-web-app-title" content="Order 66"><meta name="theme-color" content="#05070d"><style>
 html,body{margin:0;height:100%;background:#05070d;color:#e9eef7;font-family:system-ui,"Segoe UI",sans-serif}
 body{display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 40%,#0c1426,#05070d 70%)}
 form{width:min(360px,88vw);padding:28px;border-radius:18px;background:rgba(12,18,30,.85);box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(160,200,255,.13);text-align:center}
