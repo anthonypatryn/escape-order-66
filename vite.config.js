@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { join } from 'node:path'
-import { readdirSync } from 'node:fs'
+import { readdirSync, writeFileSync } from 'node:fs'
 import { makeStore, handleBugs } from './lib/bugs.js'
 import { makeSoundStore, handleSounds } from './lib/sounds.js'
 
@@ -46,6 +46,26 @@ function soundsApi() {
   }
 }
 
+// Dev-only: /api/upload-dev?name=… — the sound editor's upload saves straight into public/sfx/ (live: Vercel Blob via /api/upload)
+function uploadDev() {
+  return {
+    name: 'upload-dev',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/api/upload-dev', (req, res) => {
+        const name = String(new URL(req.originalUrl || req.url, 'http://x').searchParams.get('name') || '').replace(/[^A-Za-z0-9 _.-]/g, '').slice(0, 60)
+        if (!name || req.method !== 'POST') { res.statusCode = 400; return res.end('{"error":"name?"}') }
+        const parts = []
+        req.on('data', (c) => parts.push(c))
+        req.on('end', () => {
+          writeFileSync(join(server.config.root, 'public', 'sfx', `${name}.mp3`), Buffer.concat(parts))
+          res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ file: name }))
+        })
+      })
+    },
+  }
+}
+
 // `import files from 'virtual:sfx-files'` = every mp3 in public/sfx (names without .mp3), for the sound editor's file picker
 function sfxFiles() {
   const id = 'virtual:sfx-files', resolved = '/@virtual/sfx-files.js'
@@ -61,5 +81,5 @@ function sfxFiles() {
 }
 
 export default defineConfig({
-  plugins: [react(), bugsApi(), soundsApi(), sfxFiles()],
+  plugins: [react(), bugsApi(), soundsApi(), sfxFiles(), uploadDev()],
 })

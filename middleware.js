@@ -18,6 +18,7 @@ const setCookie = (value) => `${COOKIE}=${value}; Path=/; Max-Age=${YEAR}; HttpO
 export default async function middleware(request) {
   const pass = (process.env.SITE_PASSWORD ?? '').trim();
   if (!pass) return; // not configured: open
+  if (new URL(request.url).pathname === '/api/upload' && request.method === 'POST') return; // PIN-checked itself; Vercel Blob calls it back
   const good = await token(pass);
   const url = new URL(request.url);
 

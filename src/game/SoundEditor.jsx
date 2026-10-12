@@ -22,6 +22,10 @@ export default function SoundEditor() {
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [muted, setMute] = useState(isMuted());
+  const [uploads, setUploads] = useState([]); // files uploaded from here (Vercel Blob): [{ name, url }]
+  const [upBusy, setUpBusy] = useState('');
+  const loadUploads = () => fetch('/api/upload').then((r) => (r.ok ? r.json() : { files: [] })).then((j) => setUploads(j.files ?? [])).catch(() => {});
+  useEffect(() => { if (!import.meta.env.DEV) loadUploads(); }, []);
   useEffect(() => {
     fetch('/api/sounds').then((r) => r.json()).then((j) => { const s = j.sounds ?? {}; setServer(s); setCfg({ ...BUILTIN, ...s }); })
       .catch(() => { setServer({}); setCfg({ ...BUILTIN }); });
@@ -56,6 +60,32 @@ export default function SoundEditor() {
     flash(Object.keys(diff).length ? `Copied ${Object.keys(diff).length} changed sound(s) for Claude.` : 'Nothing differs from the built-in sounds.');
   };
   const hearIt = () => { setSoundConfig(cfg); play(sel); };
+  // upload a sound file and add it as a clip on this sound (live: Vercel Blob, needs the PIN; dev: saved into public/sfx)
+  const uploadFile = async (f) => {
+    if (!f) return;
+    if (!pin && !import.meta.env.DEV) { flash('Type your PIN at the bottom first, then upload.'); return; }
+    const name = f.name.replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9 _.-]/g, '').trim().slice(0, 50) || 'sound';
+    setUpBusy(`Uploading ${f.name}…`);
+    try {
+      let file;
+      if (import.meta.env.DEV) {
+        const r = await fetch(`/api/upload-dev?name=${encodeURIComponent(name)}`, { method: 'POST', body: f });
+        if (!r.ok) throw new Error(`Upload failed (${r.status})`);
+        file = (await r.json()).file;
+      } else {
+        const { upload } = await import('@vercel/blob/client');
+        const blob = await upload(`sfx/${name}${(f.name.match(/\.[a-z0-9]+$/i) ?? ['.mp3'])[0].toLowerCase()}`, f, { access: 'public', handleUploadUrl: '/api/upload', clientPayload: pin, contentType: f.type || 'audio/mpeg' });
+        file = blob.url;
+        loadUploads();
+      }
+      try { localStorage.setItem(PIN_KEY, pin); } catch { /* ignore */ }
+      setClips([...clips, { file, start: 0, len: 4, vol: 1, fade: 0.15 }]);
+      flash(`Uploaded ${f.name}. Trim it below, then Save.`);
+    } catch (e) {
+      flash(/PIN/.test(e.message) ? 'Wrong PIN.' : e.message || 'Upload failed.');
+    }
+    setUpBusy('');
+  };
 
   return (
     <div className="sounds">
@@ -98,11 +128,11 @@ export default function SoundEditor() {
               onChange={(nc) => setClips(clips.map((x, k) => (k === i ? nc : x)))}
               onRemove={() => setClips(clips.filter((_, k) => k !== i))} />
           ))}
-          <AddClip onAdd={(file) => setClips([...clips, { file, start: 0, len: 3, vol: 1, fade: 0.15 }])} />
+          <AddClip uploads={uploads} busy={upBusy} onUpload={uploadFile} onAdd={(file) => setClips([...clips, { file, start: 0, len: 3, vol: 1, fade: 0.15 }])} />
         </main>
       </div>
       <footer className="snd-save">
-        <span className="note">{anyDirty ? 'You have unsaved changes (the dots).' : 'All saved.'} Files live in public/sfx — send new ones to Claude to add.</span>
+        <span className="note">{anyDirty ? 'You have unsaved changes (the dots).' : 'All saved.'} Upload new sound files with ⬆ (needs the PIN).</span>
         {msg && <span className="snd-msg">{msg}</span>}
         <label className="snd-pin">PIN <input className="pin-input" type="text" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} autoComplete="off" data-1p-ignore data-lpignore="true" /></label>
         <button onClick={copy}>Copy for Claude</button>
@@ -112,16 +142,26 @@ export default function SoundEditor() {
   );
 }
 
-function AddClip({ onAdd }) {
+function AddClip({ onAdd, onUpload, uploads, busy }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
-  const list = SFX_FILES.filter((f) => f.toLowerCase().includes(q.toLowerCase()));
-  if (!open) return <button className="snd-add" onClick={() => setOpen(true)}>+ Add a clip</button>;
+  const pick = useRef(null);
+  const match = (n) => n.toLowerCase().includes(q.toLowerCase());
   return (
-    <div className="snd-picker">
-      <input placeholder="Find a file in public/sfx…" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
-      <div className="snd-files">{list.map((f) => <button key={f} onClick={() => { onAdd(f); setOpen(false); setQ(''); }}>{f}</button>)}</div>
-      <button onClick={() => setOpen(false)}>Cancel</button>
+    <div className="snd-addrow">
+      <button className="primary" disabled={!!busy} onClick={() => pick.current?.click()}>{busy || '⬆ Upload a sound file'}</button>
+      <input ref={pick} type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg" hidden onChange={(e) => { onUpload(e.target.files?.[0]); e.target.value = ''; }} />
+      {!open && <button onClick={() => setOpen(true)}>+ Add a clip from a file already here</button>}
+      {open && (
+        <div className="snd-picker">
+          <input placeholder="Find a file…" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
+          <div className="snd-files">
+            {uploads.filter((u) => match(u.name)).map((u) => <button key={u.url} className="up" title="Uploaded" onClick={() => { onAdd(u.url); setOpen(false); setQ(''); }}>☁ {u.name}</button>)}
+            {SFX_FILES.filter(match).map((f) => <button key={f} onClick={() => { onAdd(f); setOpen(false); setQ(''); }}>{f}</button>)}
+          </div>
+          <button onClick={() => setOpen(false)}>Cancel</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -163,7 +203,7 @@ function ClipEditor({ clip, n, onChange, onRemove }) {
   return (
     <section className="clip">
       <div className="clip-top">
-        <b>Clip {n}</b><span className="clip-file">{clip.file}.mp3</span>
+        <b>Clip {n}</b><span className="clip-file">{/^https?:/.test(clip.file) ? `☁ ${decodeURIComponent(clip.file.split('/').pop()).replace(/-[A-Za-z0-9]{21,}(\.\w+)$/, '$1')}` : `${clip.file}.mp3`}</span>
         <span className="note">{dur ? `file ${fmt(dur)}` : err || 'loading…'}</span>
         <button className="clip-x" onClick={onRemove}>Remove</button>
       </div>

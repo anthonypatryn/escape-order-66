@@ -488,3 +488,7 @@ button.linkish, :is(.game, .home, .buglist) button.linkish { background: none; b
 .snd-pin { display: inline-flex; align-items: center; gap: 6px; font-family: var(--title); font-weight: 600; }
 .snd-pin input { width: 90px; }
 @media (max-width: 760px) { .snd-main { grid-template-columns: 1fr; } .snd-list { max-height: 30vh; } .snd-edit { max-height: none; } }
+
+.snd-addrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; margin-top: 8px; }
+.snd-addrow .snd-picker { flex-basis: 100%; }
+.sounds .snd-files button.up { color: var(--saber); }

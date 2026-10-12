@@ -45,7 +45,8 @@ export function setMuted(v) {
 
 // ---------- recordings (when FILES lists one) ----------
 const buffers = {};
-const load = (file) => (buffers[file] ??= fetch(`/sfx/${file}.mp3`).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)).catch(() => null));
+export const fileUrl = (file) => (/^https?:\/\//.test(file) ? file : `/sfx/${file}.mp3`); // a public/sfx name, or an uploaded file's URL
+const load = (file) => (buffers[file] ??= fetch(fileUrl(file)).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)).catch(() => null));
 async function playFile(clips, mix) {
   const c = clips[Math.floor(Math.random() * clips.length)];
   return !!(await playClip(c, mix));
