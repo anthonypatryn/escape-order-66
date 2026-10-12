@@ -216,8 +216,8 @@ function ClipEditor({ clip, n, onChange, onRemove }) {
           <Wave buf={buf} from={Math.max(0, start - Math.max(0.4, (end - start) * 0.35))} to={Math.min(dur, end + Math.max(0.4, (end - start) * 0.35))}
             start={start} end={end} head={head} onRange={setRange} zoom label="Close-up of the selection — fine-tune the edges" />
           <div className="clip-row">
-            <label>Start <input type="number" step="0.01" min="0" value={start.toFixed(2)} onChange={(e) => setRange(+e.target.value, end)} /><small>{fmt(start)}</small></label>
-            <label>End <input type="number" step="0.01" min="0" value={end.toFixed(2)} onChange={(e) => setRange(start, +e.target.value)} /><small>{fmt(end)}</small></label>
+            <label>Start <TimeInput value={start} onCommit={(t) => setRange(t, Math.max(end, t + 0.05))} /></label>
+            <label>End <TimeInput value={end} onCommit={(t) => setRange(Math.min(start, t - 0.05), t)} /></label>
             <span className="clip-len">Length <b>{(end - start).toFixed(2)} s</b></span>
             <label>Fade-out <input type="range" min="0" max="2" step="0.05" value={clip.fade} onChange={(e) => set({ fade: +e.target.value })} /><small>{clip.fade.toFixed(2)} s</small></label>
           </div>
@@ -243,6 +243,25 @@ function ClipEditor({ clip, n, onChange, onRemove }) {
         </>
       )}
     </section>
+  );
+}
+
+// a time box you can type into freely ("1:43.69" or "103.69"); it applies on Enter or when you click away (BUG: typing
+// used to be clamped on every keystroke, so a half-typed time snapped back)
+function TimeInput({ value, onCommit }) {
+  const [text, setText] = useState(null); // null = not editing: show the value
+  const parse = (v) => {
+    const m = String(v).trim().match(/^(?:(\d+):)?(\d+(?:\.\d*)?)$/);
+    if (!m) return null;
+    return (m[1] ? Number(m[1]) * 60 : 0) + Number(m[2]);
+  };
+  const commit = () => { const t = parse(text); setText(null); if (t != null && Number.isFinite(t)) onCommit(t); };
+  return (
+    <input className={`time-in ${text != null && parse(text) == null ? 'bad' : ''}`} inputMode="decimal" value={text ?? fmt(value)}
+      onFocus={(e) => { setText(fmt(value)); requestAnimationFrame(() => e.target.select()); }}
+      onChange={(e) => setText(e.target.value)} onBlur={commit}
+      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') { setText(null); e.currentTarget.blur(); } }}
+      title="Type a time like 1:43.69 or 103.69, then Enter" />
   );
 }
 
