@@ -45,7 +45,8 @@ export function setMuted(v) {
 
 // ---------- recordings (when FILES lists one) ----------
 const buffers = {};
-export const fileUrl = (file) => (/^https?:\/\//.test(file) ? file : `/sfx/${file}.mp3`); // a public/sfx name, or an uploaded file's URL
+// a clip's file: a name in public/sfx, or 'blob:<pathname>' = uploaded from the sound editor (private Blob store, via /api/sfx)
+export const fileUrl = (file) => (file.startsWith('blob:') ? `/api/sfx?p=${encodeURIComponent(file.slice(5))}` : `/sfx/${file}.mp3`);
 const load = (file) => (buffers[file] ??= fetch(fileUrl(file)).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)).catch(() => null));
 async function playFile(clips, mix) {
   const c = clips[Math.floor(Math.random() * clips.length)];

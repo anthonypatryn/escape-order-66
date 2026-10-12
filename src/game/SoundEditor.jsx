@@ -22,7 +22,7 @@ export default function SoundEditor() {
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [muted, setMute] = useState(isMuted());
-  const [uploads, setUploads] = useState([]); // files uploaded from here (Vercel Blob): [{ name, url }]
+  const [uploads, setUploads] = useState([]); // files uploaded from here (private Vercel Blob store): [{ name, file }]
   const [upBusy, setUpBusy] = useState('');
   const loadUploads = () => fetch('/api/upload').then((r) => (r.ok ? r.json() : { files: [] })).then((j) => setUploads(j.files ?? [])).catch(() => {});
   useEffect(() => { if (!import.meta.env.DEV) loadUploads(); }, []);
@@ -73,9 +73,9 @@ export default function SoundEditor() {
         if (!r.ok) throw new Error(`Upload failed (${r.status})`);
         file = (await r.json()).file;
       } else {
-        const { upload } = await import('@vercel/blob/client');
-        const blob = await upload(`sfx/${name}${(f.name.match(/\.[a-z0-9]+$/i) ?? ['.mp3'])[0].toLowerCase()}`, f, { access: 'public', handleUploadUrl: '/api/upload', clientPayload: pin, contentType: f.type || 'audio/mpeg' });
-        file = blob.url;
+        const { uploadPresigned } = await import('@vercel/blob/client');
+        const blob = await uploadPresigned(`sfx/${name}${(f.name.match(/\.[a-z0-9]+$/i) ?? ['.mp3'])[0].toLowerCase()}`, f, { access: 'private', handleUploadUrl: '/api/upload', clientPayload: pin, contentType: f.type || 'audio/mpeg' });
+        file = `blob:${blob.pathname}`;
         loadUploads();
       }
       try { localStorage.setItem(PIN_KEY, pin); } catch { /* ignore */ }
@@ -156,7 +156,7 @@ function AddClip({ onAdd, onUpload, uploads, busy }) {
         <div className="snd-picker">
           <input placeholder="Find a file…" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
           <div className="snd-files">
-            {uploads.filter((u) => match(u.name)).map((u) => <button key={u.url} className="up" title="Uploaded" onClick={() => { onAdd(u.url); setOpen(false); setQ(''); }}>☁ {u.name}</button>)}
+            {uploads.filter((u) => match(u.name)).map((u) => <button key={u.file} className="up" title="Uploaded" onClick={() => { onAdd(u.file); setOpen(false); setQ(''); }}>☁ {u.name}</button>)}
             {SFX_FILES.filter(match).map((f) => <button key={f} onClick={() => { onAdd(f); setOpen(false); setQ(''); }}>{f}</button>)}
           </div>
           <button onClick={() => setOpen(false)}>Cancel</button>
@@ -203,7 +203,7 @@ function ClipEditor({ clip, n, onChange, onRemove }) {
   return (
     <section className="clip">
       <div className="clip-top">
-        <b>Clip {n}</b><span className="clip-file">{/^https?:/.test(clip.file) ? `☁ ${decodeURIComponent(clip.file.split('/').pop()).replace(/-[A-Za-z0-9]{21,}(\.\w+)$/, '$1')}` : `${clip.file}.mp3`}</span>
+        <b>Clip {n}</b><span className="clip-file">{clip.file.startsWith('blob:') ? `☁ ${decodeURIComponent(clip.file.split('/').pop()).replace(/-[A-Za-z0-9]{21,}(\.\w+)$/, '$1')}` : `${clip.file}.mp3`}</span>
         <span className="note">{dur ? `file ${fmt(dur)}` : err || 'loading…'}</span>
         <button className="clip-x" onClick={onRemove}>Remove</button>
       </div>
