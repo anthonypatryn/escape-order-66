@@ -177,5 +177,23 @@
    "vol": 1.8,
    "fade": 0.3
   }
+ ],
+ "enc-satine": [
+  {
+   "file": "enc-satine",
+   "start": 0.1,
+   "len": 4,
+   "vol": 3.0,
+   "fade": 0.3
+  }
+ ],
+ "undo": [
+  {
+   "file": "undo",
+   "start": 0.1,
+   "len": 1.5,
+   "vol": 1.6,
+   "fade": 0.15
+  }
  ]
 }

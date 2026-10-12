@@ -64,7 +64,7 @@ export default function SoundEditor() {
   const uploadFile = async (f) => {
     if (!f) return;
     if (!pin && !import.meta.env.DEV) { flash('Type your PIN at the bottom first, then upload.'); return; }
-    const name = f.name.replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9 _.-]/g, '').trim().slice(0, 50) || 'sound';
+    const name = f.name.replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9 _.-]/g, '').trim().replace(/\s+/g, '-').slice(0, 50) || 'sound'; // no spaces in stored names
     setUpBusy(`Uploading ${f.name}…`);
     try {
       let file;
