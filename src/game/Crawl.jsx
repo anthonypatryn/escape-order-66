@@ -4,7 +4,8 @@ import { hold as holdMusic } from './music';
 
 // The start of every game, timed to the owner's recording (public/sfx/crawl.mp3) the way the films do it:
 // a blue line of text in silence → the opening hit + the logo, which recedes into the stars → the story crawls away →
-// the music softens and the camera tilts down past the stars (three parallax layers) onto the Galaxy (GameView .panning).
+// the music softens and the camera tilts down: stars (three layers), two moons and a planet's horizon rise past at
+// different speeds (parallax), then the Galaxy rises over the planet (GameView .panning).
 // Everything is timed from the moment the music starts, in seconds of the timeline below (music file time − OFFSET).
 // Space / Enter / Esc / a tap skips straight to a short version of the tilt. Settings → Opening crawl turns it off.
 const OFFSET = 22.5;          // where in crawl.mp3 we start (the silence before the hit)
@@ -12,11 +13,11 @@ const INTRO = [0.4, 5.0];     // the blue line: fades in / starts fading out
 const HIT = 6.46;             // the opening hit (28.96 s in the file): the logo appears
 const LOGO_S = 9;             // the logo recedes for this long
 const CRAWL_AT = 9.0;         // the story starts rising
-const CRAWL_S = 78.5;         // ...and has gone by 87.5
+const CRAWL_S = 82.0;         // ...still rising when the tilt starts (it sweeps up out of frame with the stars)
 const PAN_AT = 89.3;          // the music softens (111.8 s in the file): tilt down
-const PAN_MS = 7200;
+const PAN_MS = 8400;          // the soft passage lasts ~8.5 s
 const END = PAN_AT + PAN_MS / 1000; // music fades out, the game begins
-const SKIP_PAN_MS = 3000;
+const SKIP_PAN_MS = 3400;
 
 export default function Crawl({ players, onPan, onDone }) {
   const [step, setStep] = useState('load'); // load → intro → black → title → pan
@@ -68,7 +69,8 @@ export default function Crawl({ players, onPan, onDone }) {
       <div className="crawl-stars" aria-hidden="true"><i className="far" /><i className="mid" /><i className="near" /></div>
       {step === 'intro' && <p className="crawl-intro">A short time after the Clone Wars,<br />in a galaxy far, far away….</p>}
       {step === 'title' && <img className="crawl-logo" src="/art/logo.svg" alt="Escape Order 66" style={{ '--logo': `${LOGO_S}s` }} />}
-      {step === 'title' && (
+      <div className="crawl-planets" aria-hidden="true"><i className="moon-far" /><i className="moon-near" /><i className="planet" /></div>
+      {(step === 'title' || step === 'pan') && (
         <div className="crawl-plane">
           <div className="crawl-text" style={{ '--crawl': `${CRAWL_S}s`, '--crawl-delay': `${CRAWL_AT - HIT}s` }}>
             <p className="crawl-ep">Episode LXVI</p>

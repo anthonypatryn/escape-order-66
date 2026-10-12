@@ -128,7 +128,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
   const [pan, setPan] = useState(0); // ms of the pan running now (0 = none)
   const startPan = (ms) => {
     setPan(ms);
-    if (!prefs.calm) later(() => { setDealing(true); later(() => setDealing(false), 1700); }, ms * 0.55);
+    if (!prefs.calm) later(() => { setDealing(true); later(() => setDealing(false), 1700); }, ms * 0.72);
     later(() => setPan(0), ms + 50);
   };
   // panned = the crawl ended with the tilt down (the deal already ran during it)

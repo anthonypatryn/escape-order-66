@@ -125,22 +125,54 @@
   animation: crawlup var(--crawl) linear var(--crawl-delay) both; }
 .crawl-text h2 { text-align: center; text-transform: uppercase; font-size: 1.3em; margin: 0 0 .8em; letter-spacing: .06em; }
 .crawl-ep { text-align: center; margin: 0; letter-spacing: .1em; }
-@keyframes crawlup { to { transform: translateY(calc(-100% - 112vh)); } }
+@keyframes crawlup { to { transform: translateY(calc(-100% - 58vh)); } }
 .crawl-load { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--tx-dim); }
 .game .crawl-skip, .crawl .crawl-skip { position: absolute; right: 18px; bottom: 18px; z-index: 3; color: #fff; background: rgba(255, 255, 255, .14); box-shadow: none; }
 /* the tilt down: the black lifts off the game screen behind, the stars sweep up (near ones fastest) */
 .crawl.step-pan { pointer-events: none; }
 .crawl.step-pan .crawl-black { animation: lift var(--pan) cubic-bezier(.5, 0, .7, .4) forwards; }
-@keyframes lift { 0% { opacity: 1; } 35% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes lift { 0%, 58% { opacity: 1; } 100% { opacity: 0; } }
 .crawl.step-pan .crawl-stars i { animation: sweep var(--pan) cubic-bezier(.45, 0, .25, 1) forwards; }
 .crawl.step-pan .crawl-stars .far { --dy: -45vh; } .crawl.step-pan .crawl-stars .mid { --dy: -120vh; } .crawl.step-pan .crawl-stars .near { --dy: -240vh; }
 @keyframes sweep { 0% { transform: none; opacity: 1; } 70% { opacity: 1; } 100% { transform: translateY(var(--dy)); opacity: 0; } }
+/* the crawl itself goes up and out of frame with the tilt */
+.crawl.step-pan .crawl-plane { animation: planeup var(--pan) cubic-bezier(.45, 0, .3, 1) forwards; }
+@keyframes planeup { 0% { translate: 0 0; opacity: 1; } 45% { opacity: .6; } 60% { translate: 0 -110vh; opacity: 0; } 100% { translate: 0 -110vh; opacity: 0; } }
+/* moons and a planet's horizon below the frame; the tilt brings them up at different speeds (near = faster), then
+   the camera keeps tilting toward the planet's surface and the Galaxy rises over it */
+.crawl-planets { position: absolute; inset: 0; pointer-events: none; }
+.crawl-planets i { position: absolute; display: block; border-radius: 50%; }
+.crawl-planets .moon-far { left: 51%; top: 108vh; width: 2.6vw; aspect-ratio: 1;
+  background: radial-gradient(circle at 38% 40%, #d8dee6, #9aa4b1 55%, #47505c 90%); box-shadow: inset -.5vw -.15vw .7vw rgba(0, 0, 0, .7); }
+.crawl-planets .moon-near { left: 15%; top: 128vh; width: 10vw; aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 28% 62%, rgba(40, 48, 60, .45) 0 7%, transparent 8%), radial-gradient(circle at 55% 30%, rgba(40, 48, 60, .35) 0 5%, transparent 6%),
+    radial-gradient(circle at 40% 22%, rgba(40, 48, 60, .3) 0 9%, transparent 10%), radial-gradient(circle at 62% 66%, rgba(40, 48, 60, .3) 0 6%, transparent 7%),
+    radial-gradient(circle at 20% 40%, rgba(40, 48, 60, .3) 0 4%, transparent 5%),
+    radial-gradient(circle at 35% 42%, #c5ced8, #8d98a6 50%, #4a5361 80%, #1d2129 100%);
+  box-shadow: inset -2.4vw -.6vw 2.6vw rgba(0, 0, 0, .82), 0 0 1.4vw rgba(160, 190, 230, .12); }
+.crawl-planets .planet { left: 50%; top: 118vh; width: 320vw; aspect-ratio: 1; margin-left: -160vw;
+  background:
+    radial-gradient(ellipse 18% 6% at 46% 4.5%, rgba(255, 245, 230, .5), transparent 70%),
+    radial-gradient(ellipse 9% 3% at 58% 6%, rgba(120, 70, 40, .35), transparent 70%),
+    radial-gradient(ellipse 30% 8% at 62% 9%, rgba(240, 220, 195, .35), transparent 70%),
+    radial-gradient(ellipse 22% 5% at 38% 7%, rgba(140, 90, 60, .3), transparent 70%),
+    repeating-radial-gradient(ellipse 70% 20% at 45% 2%, rgba(205, 165, 125, .5) 0 1.4%, rgba(176, 128, 94, .5) 2.2% 3.1%, rgba(214, 182, 145, .45) 4% 5%),
+    linear-gradient(180deg, #d4b08a, #b98a64 6%, #c49773 14%);
+  filter: blur(.4px);
+  box-shadow: 0 -.35vw .5vw rgba(150, 205, 255, .9), 0 -1vw 2.4vw rgba(60, 130, 230, .75), 0 -3vw 6vw rgba(30, 80, 190, .35), inset 0 3vw 5vw rgba(255, 255, 255, .12); }
+.crawl.step-pan .crawl-planets i { animation: rise var(--pan) cubic-bezier(.4, 0, .3, 1) forwards; }
+.crawl.step-pan .crawl-planets .moon-far { --a: -96vh; --b: -118vh; }
+.crawl.step-pan .crawl-planets .moon-near { --a: -86vh; --b: -150vh; }
+.crawl.step-pan .crawl-planets .planet { --a: -50vh; --b: -125vh; }
+@keyframes rise { 0% { translate: 0 0; } 58% { translate: 0 var(--a); opacity: 1; } 100% { translate: 0 var(--b); opacity: 0; } }
+
 /* ...and the game screen rises into view from below, tilting flat as it arrives (a planet coming over the horizon) */
 .game.panning { perspective: 1400px; }
 .game.panning > .game-top, .game.panning > .game-main { transform-origin: 50% 0; animation: panin var(--pan) cubic-bezier(.4, 0, .15, 1) both; }
 .game.panning > .game-top { animation-name: panintop; }
-@keyframes panin { 0%, 25% { transform: translateY(110vh) rotateX(32deg); } 100% { transform: none; } }
-@keyframes panintop { 0%, 70% { transform: translateY(-120%); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes panin { 0%, 55% { transform: translateY(110vh) rotateX(32deg); } 100% { transform: none; } }
+@keyframes panintop { 0%, 82% { transform: translateY(-120%); opacity: 0; } 100% { transform: none; opacity: 1; } }
 .game.panning > .stars { animation: panstars var(--pan) cubic-bezier(.45, 0, .25, 1) both; }
 @keyframes panstars { from { transform: translateY(70vh); } }
 .game.panning .galaxy::before { animation: planet var(--pan) ease-out both; }
@@ -170,7 +202,7 @@
   text-shadow: 0 0 10px rgba(255, 60, 50, .9), 0 0 40px rgba(255, 40, 30, .6); background: rgba(30, 0, 0, .55); box-shadow: inset 0 0 0 1px rgba(255, 80, 70, .5), 0 0 40px rgba(255, 40, 30, .35);
   opacity: 0; animation: o66text 6.5s steps(1, end) forwards; }
 .order66-text small { font-family: var(--title); font-weight: 800; font-size: .28em; letter-spacing: .4em; color: #ffb3ad; }
-@keyframes o66text { 0%, 30% { opacity: 0; } 32% { opacity: .9; } 34% { opacity: .2; } 36% { opacity: 1; } 60% { opacity: .75; } 62%, 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes o66text { 0%, 38% { opacity: 0; } 40% { opacity: .9; } 42% { opacity: .2; } 44% { opacity: 1; } 60% { opacity: .75; } 62%, 90% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ---------- the end ---------- */
 .end { position: fixed; inset: 0; z-index: 80; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 30px 16px 40px; color: var(--tx);

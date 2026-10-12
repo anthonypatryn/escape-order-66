@@ -53,7 +53,7 @@ with Star Wars art and (later) Star Wars sounds.
 | `src/game/BugReport.jsx`, `BugList.jsx`, `lib/bugs.js`, `api/bugs.js` | Copied from Long Shot. Store = the shared Upstash DB (`KV_REST_API_URL/TOKEN`), keys `escape-66:bugs*`; PIN = Vercel `BUG_PIN` (dev: `.data/bugs.json`, PIN 1234) |
 | `src/game/sound.js` | All sounds synthesized (saber swing, holo pings, blaster, brass stab, hologram shimmer, droid chirp, hyperspace, fanfare, space-hum music). Real files: add to `FILES` (see `public/sfx/README.md`) |
 | `src/game/resume.js` | Saved games in localStorage (`eo-saves`), setup + trail + open request |
-| `src/game/prefs.js`, `Settings.jsx` | Text size, calm motion, opening crawl, move hints, mixer (saber / fx / music). Player colours: blue `#3fb6ff`, amber `#ffb02e` |
+| `src/game/prefs.js`, `Settings.jsx` | Text size, calm motion, opening crawl, move hints, mixer (saber / fx / music). Player colours: Jedi blue `#3fb6ff` vs Sith red `#ff4655` |
 | `src/game/Phone.jsx`, `phone.css` | Long Shot's phone layout: ≤760 px → Galaxy fills, banner strip under it, question docked, nav Galaxy / Encounters / Players / Log + sheets, ⋯ menu |
 | `src/game/game.css`, `fx.css`, `src/index.css` | Layout/panels/controls · all animations · tokens + type (Exo 2 titles/numbers, Barlow reading, Russo One logo) |
 | `tools/art.py`, `tools/simulate.mjs` | Art pipeline · headless AI games |

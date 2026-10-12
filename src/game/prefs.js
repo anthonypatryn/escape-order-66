@@ -23,6 +23,6 @@ export function useSettings() {
 }
 
 export const TEXT_ZOOM = { normal: 1, large: 1.15, larger: 1.3 };
-// the two seats: Jedi blue and Sith-ish amber (stand apart from every faction colour)
-export const PLAYER_COLORS = ['#3fb6ff', '#ffb02e'];
+// the two seats: Jedi blue and Sith red (owner's pick)
+export const PLAYER_COLORS = ['#3fb6ff', '#ff4655'];
 export const playerColor = (pid) => PLAYER_COLORS[pid % PLAYER_COLORS.length];
