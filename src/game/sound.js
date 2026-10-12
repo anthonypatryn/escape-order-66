@@ -181,11 +181,12 @@ export function playMusic(buf, { offset = 0, dur, fadeIn = 0.05, fadeOut = 1.5 }
   } catch { return null; }
 }
 
-// the music player's <audio> goes through the master volume too (so Mute silences it); once per element
-const routed = new WeakSet();
+// the music player's <audio> goes through the master volume too (so Mute silences it), via its own gain node — that
+// gain is the player's volume (iPhone ignores <audio>.volume: BUG-1). Once per element; returns the gain (null = no Web Audio)
+const routed = new WeakMap();
 export function routeMedia(el) {
-  if (routed.has(el)) return;
-  try { wakeCtx(); ctx.createMediaElementSource(el).connect(out()); routed.add(el); } catch { /* plays directly */ }
+  if (routed.has(el)) return routed.get(el);
+  try { wakeCtx(); const g = ctx.createGain(); ctx.createMediaElementSource(el).connect(g).connect(out()); routed.set(el, g); return g; } catch { return null; }
 }
 
 // phones only allow sound after a tap: the first tap wakes the audio up (and later taps revive it after a call / app switch)

@@ -76,3 +76,21 @@
 html.page-lock, html.page-lock body { overflow: hidden; overscroll-behavior: none; background: #070b14; }
 .drawer-head { padding-top: calc(14px + env(safe-area-inset-top)); }
 .modal, .lightbox { padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left)); }
+
+/* BUG-2: the home card was as wide as its widest row (487 px on a 440 px iPhone): the page now sizes it */
+.home { grid-template-columns: minmax(0, 1fr); }
+.home-card { min-width: 0; }
+.seat-list li { min-width: 0; }
+@media (max-width: 480px) {
+  .home { padding: 12px 10px 24px; }
+  .home-card { padding: 18px 12px; }
+  .seat-list li { gap: 6px; padding: 6px; }
+  .seat-dot { margin-left: 2px; }
+  .seat-list input { min-width: 0; width: 100%; }
+  .home button.lvl-pick, .lvl-pick, .seat-lvl-none { width: 96px; font-size: 12px; padding: 6px 4px; }
+  .resume-card { flex-wrap: wrap; }
+  .resume-card .btns { margin-left: auto; }
+  .first-row { justify-content: center; }
+  .home-music .music-player { max-width: calc(100vw - 20px); }
+  .home-music .mp-main { min-width: 0; }
+}

@@ -17,6 +17,8 @@ const st = { idx: Math.min(saved.idx ?? 0, TRACKS.length - 1), vol: saved.vol ??
 const subs = new Set();
 const emit = () => { subs.forEach((f) => f()); try { localStorage.setItem(KEY, JSON.stringify({ idx: st.idx, vol: st.vol, on: st.on })); } catch { /* ignore */ } };
 let el = null;
+let gain = null; // the player's volume (a Web Audio gain: iPhone ignores <audio>.volume, BUG-1)
+let level = 0;
 
 function audio() {
   if (el || typeof window === 'undefined') return el;
@@ -27,11 +29,13 @@ function audio() {
   el.addEventListener('ended', () => next(true));
   el.addEventListener('play', () => { st.playing = true; emit(); });
   el.addEventListener('pause', () => { st.playing = false; emit(); });
-  routeMedia(el); // through the game's master volume, so Mute (M) silences it too
+  gain = routeMedia(el); // through the game's master volume, so Mute (M) silences it too
   applyVolume();
   return el;
 }
-export function applyVolume() { if (el) el.volume = Math.max(0, Math.min(1, st.vol * (settings().mix.music ?? 0.6))); }
+const target = () => Math.max(0, Math.min(1, st.vol * (settings().mix.music ?? 0.6)));
+function setLevel(v) { level = v; if (gain) { gain.gain.value = v; if (el) el.volume = 1; } else if (el) el.volume = Math.max(0, Math.min(1, v)); }
+export function applyVolume() { setLevel(target()); }
 
 export function play() {
   if (quietPage()) return;
@@ -59,13 +63,13 @@ export function hold(on) {
   if (on === st.held) return;
   st.held = on;
   if (on) { if (el && !el.paused) { st.resume = true; fade(0, 600, () => el.pause()); } else st.resume = false; }
-  else if (st.resume && st.on) { audio(); applyVolume(); const target = el.volume; el.volume = 0; el.play().then(() => fade(target, 1500)).catch(() => {}); }
+  else if (st.resume && st.on) { audio(); const to = target(); setLevel(0); el.play().then(() => fade(to, 1500)).catch(() => {}); }
   emit();
 }
 function fade(to, ms, done) {
   if (!el) return;
-  const from = el.volume, t0 = performance.now();
-  const step = (t) => { const k = Math.min(1, (t - t0) / ms); el.volume = from + (to - from) * k; if (k < 1) requestAnimationFrame(step); else { done?.(); if (to > 0) applyVolume(); } };
+  const from = level, t0 = performance.now();
+  const step = (t) => { const k = Math.min(1, (t - t0) / ms); setLevel(from + (to - from) * k); if (k < 1) requestAnimationFrame(step); else { done?.(); if (to > 0) applyVolume(); } };
   requestAnimationFrame(step);
 }
 
