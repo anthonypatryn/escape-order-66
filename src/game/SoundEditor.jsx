@@ -73,6 +73,9 @@ export default function SoundEditor() {
         if (!r.ok) throw new Error(`Upload failed (${r.status})`);
         file = (await r.json()).file;
       } else {
+        // ask the site first, so a problem shows its real reason (the Blob library only says "Failed to retrieve the presigned URL")
+        const chk = await fetch('/api/upload?check=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin }) });
+        if (!chk.ok) throw new Error((await chk.json().catch(() => ({}))).error || `Upload check failed (${chk.status})`);
         const { uploadPresigned } = await import('@vercel/blob/client');
         const blob = await uploadPresigned(`sfx/${name}${(f.name.match(/\.[a-z0-9]+$/i) ?? ['.mp3'])[0].toLowerCase()}`, f, { access: 'private', handleUploadUrl: '/api/upload', clientPayload: pin, contentType: f.type || 'audio/mpeg' });
         file = `blob:${blob.pathname}`;

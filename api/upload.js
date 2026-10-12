@@ -13,6 +13,14 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (!configured()) return res.status(501).json({ error: 'Uploads aren’t set up yet: create a Blob store in Vercel (Storage) and connect it to this project.' });
   try {
+    // the editor asks first (POST ?check=1 { pin }): same PIN + token steps as a real upload, but returns the reason if it fails
+    if (req.method === 'POST' && new URL(req.url, 'http://x').searchParams.get('check')) {
+      let b = req.body; if (typeof b === 'string') b = JSON.parse(b || '{}');
+      const expected = norm(process.env.BUG_PIN);
+      if (!expected || norm(b?.pin) !== expected) return res.status(401).json({ error: 'Wrong PIN.' });
+      await issueSignedToken({ operations: ['put'], allowedContentTypes: ['audio/*'], maximumSizeInBytes: MAX });
+      return res.status(200).json({ ok: true });
+    }
     if (req.method === 'GET') {
       const { blobs } = await list({ prefix: 'sfx/', limit: 1000 });
       return res.status(200).json({ files: blobs.map((b) => ({ name: b.pathname.replace(/^sfx\//, '').replace(/-[A-Za-z0-9]{21,}(\.\w+)$/, '$1'), file: `blob:${b.pathname}`, size: b.size })) });
@@ -25,12 +33,13 @@ export default async function handler(req, res) {
         const expected = norm(process.env.BUG_PIN);
         if (!expected || norm(clientPayload) !== expected) throw new Error('Wrong PIN.');
         if (!pathname.startsWith('sfx/')) throw new Error('Bad path.');
-        const token = await issueSignedToken({ pathname: 'sfx/*', operations: ['put'], allowedContentTypes: ['audio/*'], maximumSizeInBytes: MAX });
+        const token = await issueSignedToken({ operations: ['put'], allowedContentTypes: ['audio/*'], maximumSizeInBytes: MAX }); // whole store: the final name gets a random suffix
         return { token, urlOptions: { allowedContentTypes: ['audio/*'], maximumSizeInBytes: MAX, addRandomSuffix: true } };
       },
     });
     return res.status(200).json(json);
   } catch (e) {
+    console.error('upload failed:', e?.message || e, e?.stack);
     return res.status(400).json({ error: e.message || String(e) });
   }
 }
