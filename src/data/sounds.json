@@ -1,0 +1,181 @@
+{
+ "saber": [
+  {
+   "file": "saber-a",
+   "start": 0.06,
+   "len": 0.75,
+   "vol": 1,
+   "fade": 0.15
+  },
+  {
+   "file": "saber-b",
+   "start": 0.07,
+   "len": 0.85,
+   "vol": 1,
+   "fade": 0.15
+  },
+  {
+   "file": "saber-c",
+   "start": 0,
+   "len": 0.8,
+   "vol": 1,
+   "fade": 0.15
+  }
+ ],
+ "kill": [
+  {
+   "file": "kill-a",
+   "start": 0,
+   "len": 0.78,
+   "vol": 0.5,
+   "fade": 0.12
+  },
+  {
+   "file": "kill-b",
+   "start": 0.21,
+   "len": 0.9,
+   "vol": 0.5,
+   "fade": 0.15
+  },
+  {
+   "file": "kill-c",
+   "start": 0,
+   "len": 1.3,
+   "vol": 0.5,
+   "fade": 0.3
+  }
+ ],
+ "swap": [
+  {
+   "file": "swap",
+   "start": 0.03,
+   "len": 1.5,
+   "vol": 0.55,
+   "fade": 0.2
+  }
+ ],
+ "bighaul": [
+  {
+   "file": "haul-a",
+   "start": 0,
+   "len": 2.49,
+   "vol": 2.2,
+   "fade": 0.2
+  },
+  {
+   "file": "haul-b",
+   "start": 0.06,
+   "len": 0.85,
+   "vol": 3.4,
+   "fade": 0.12
+  }
+ ],
+ "turn": [
+  {
+   "file": "turn",
+   "start": 0.01,
+   "len": 0.8,
+   "vol": 0.5,
+   "fade": 0.1
+  }
+ ],
+ "lose": [
+  {
+   "file": "lose",
+   "start": 0,
+   "len": 4.26,
+   "vol": 1,
+   "fade": 0.4
+  }
+ ],
+ "order66": [
+  {
+   "file": "order66",
+   "start": 0,
+   "len": 6.56,
+   "vol": 1,
+   "fade": 0.4
+  }
+ ],
+ "enc-droids": [
+  {
+   "file": "enc-droids",
+   "start": 0,
+   "len": 0.9,
+   "vol": 1,
+   "fade": 0.1
+  }
+ ],
+ "enc-krell": [
+  {
+   "file": "enc-krell",
+   "start": 64,
+   "len": 4,
+   "vol": 3.0,
+   "fade": 0.3
+  }
+ ],
+ "enc-huyang": [
+  {
+   "file": "enc-huyang",
+   "start": 172,
+   "len": 4,
+   "vol": 1.8,
+   "fade": 0.3
+  }
+ ],
+ "enc-trench": [
+  {
+   "file": "enc-trench",
+   "start": 1.3,
+   "len": 2.2,
+   "vol": 0.65,
+   "fade": 0.2
+  }
+ ],
+ "enc-sidious": [
+  {
+   "file": "enc-sidious",
+   "start": 0,
+   "len": 5.5,
+   "vol": 3.2,
+   "fade": 0.4
+  }
+ ],
+ "enc-fennec": [
+  {
+   "file": "enc-fennec",
+   "start": 0,
+   "len": 1.83,
+   "vol": 2.8,
+   "fade": 0.15
+  }
+ ],
+ "enc-bokatan": [
+  {
+   "file": "enc-bokatan",
+   "start": 0,
+   "len": 2.79,
+   "vol": 1.9,
+   "fade": 0.2
+  }
+ ],
+ "enc-omega": [
+  {
+   "file": "enc-omega",
+   "start": 24,
+   "len": 4,
+   "vol": 3.0,
+   "fade": 0.3
+  }
+ ],
+ "enc-nightsisters": [
+  {
+   "file": "enc-nightsisters",
+   "start": 114,
+   "len": 4,
+   "vol": 1.8,
+   "fade": 0.3
+  }
+ ]
+}

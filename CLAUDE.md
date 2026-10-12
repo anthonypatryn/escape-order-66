@@ -51,7 +51,8 @@ with Star Wars art and (later) Star Wars sounds.
 | `src/game/Home.jsx` | Setup: 2 seats (name · person/computer · difficulty), who goes first, Saved games (Resume / Delete), space-hum music |
 | `src/game/Lab.jsx` | **Debug lab `/?view=lab`** (Long Shot's `/?view=moments` idea): the real game screen on a game that only moves when pushed — play one turn, run normally, fire any encounter for the current player, kill/take/switch/flip-banner/near-end/end-screen/crawl, seed + seat controls, raw state |
 | `src/game/BugReport.jsx`, `BugList.jsx`, `lib/bugs.js`, `api/bugs.js` | Copied from Long Shot. Store = the shared Upstash DB (`KV_REST_API_URL/TOKEN`), keys `escape-66:bugs*`; PIN = Vercel `BUG_PIN` (dev: `.data/bugs.json`, PIN 1234) |
-| `src/game/sound.js` | All sounds synthesized (saber swing, holo pings, blaster, brass stab, hologram shimmer, droid chirp, hyperspace, fanfare, space-hum music). Real files: add to `FILES` (see `public/sfx/README.md`) |
+| `src/data/sounds.json`, `src/data/soundSlots.js`, `src/game/SoundEditor.jsx`, `lib/sounds.js`, `api/sounds.js` | **Owner's clips**: sounds.json = `{ slot: [{ file, start, len, vol, fade }] }` (one picked at random; files in public/sfx). **Sound editor `/?view=sounds`**: every slot (soundSlots.js), waveform + zoom strip with draggable start/end, volume + loudness meter (target −14 dB, Match level), fade, listen with playhead, set start/end here. Save (BUG_PIN) → `/api/sounds` (Upstash `escape-66:sounds`, dev `.data/sounds.json`) = overrides loaded by every page on start (`loadSoundOverrides`); Copy for Claude = JSON to bake into sounds.json. `virtual:sfx-files` (vite.config) lists public/sfx for the file picker |
+| `src/game/sound.js` | Plays a slot's clips (sounds.json + editor overrides) or falls back to the synth kit (take, encounter, banner, click, win…). `playMusic` = the crawl; `routeMedia` = the music player through the master volume. Sound hooks: `useSounds` in useGame.js (log lines → slots, incl. last-one, steal, lock, fizzle, extra-turn, ai-turn, game-over, enc-<id>) |
 | `src/game/resume.js` | Saved games in localStorage (`eo-saves`), setup + trail + open request |
 | `src/game/prefs.js`, `Settings.jsx` | Text size, calm motion, opening crawl, move hints, mixer (saber / fx / music). Player colours: Jedi blue `#3fb6ff` vs Sith red `#ff4655` |
 | `src/game/Phone.jsx`, `phone.css` | Long Shot's phone layout: ≤760 px → Galaxy fills, banner strip under it, question docked, nav Galaxy / Encounters / Players / Log + sheets, ⋯ menu |
@@ -60,4 +61,5 @@ with Star Wars art and (later) Star Wars sounds.
 
 ## Dev
 - `npm run dev` (preview config `escape-66`, port 5191 in `.claude/launch.json`).
-- Pages: `/` game · `/?view=lab` debug lab · `/?view=bugs` bug list · `/?view=cards` card + banner review.
+- Pages: `/` game · `/?view=lab` debug lab · `/?view=bugs` bug list · `/?view=cards` card + banner review · `/?view=sounds` sound editor.
+- Private site: `middleware.js` = password gate (Vercel env `SITE_PASSWORD`, set by the owner 2026-10-12); `?key=PASSWORD` links sign friends in.

@@ -1,15 +1,7 @@
 # Sounds
 
-Every sound is synthesized in `src/game/sound.js` for now. To use a real recording instead, drop the mp3 in this folder and
-list it in `FILES` at the top of `sound.js`:
-
-```js
-const FILES = {
-  saber: [['saber-swing', 0, 1.2, 1, 0.2]],   // [file (no .mp3), start s, length s, volume, fade-out s]
-};
-```
-
-Several clips for one sound = one picked at random. A sound with no file stays synthesized.
+The clips for each sound are set in `src/data/sounds.json` and can be edited without code at **`/?view=sounds`** (the sound editor:
+trim, volume, fade, Save = live for everyone with the bug-list PIN). New files: drop the mp3 here, then add it as a clip in the editor.
 
 | Sound | When |
 |---|---|

@@ -13,9 +13,10 @@ import './game/game.css'
 import './game/fx.css'
 import './game/phone.css'
 import App from './App.jsx'
-import { unlockAudioOnFirstTap } from './game/sound'
+import { unlockAudioOnFirstTap, loadSoundOverrides } from './game/sound'
 
 unlockAudioOnFirstTap()
+loadSoundOverrides() // clip settings saved from the sound editor (/?view=sounds)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

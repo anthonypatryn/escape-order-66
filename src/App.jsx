@@ -7,13 +7,15 @@ import { saveGame, resumePoint } from './game/resume';
 import { CharCard, EncCard, Banner, Logo } from './game/Cards';
 import { CHARACTERS, ENCOUNTERS, FACTIONS } from './data/cards';
 const Lab = lazy(() => import('./game/Lab')); // /?view=lab (debug lab)
+const SoundEditor = lazy(() => import('./game/SoundEditor')); // /?view=sounds (the owner's sound editor)
 
-// Router: / = Home → game; ?view=bugs (bug list), ?view=lab (debug lab), ?view=cards (card review)
+// Router: / = Home → game; ?view=bugs (bug list), ?view=lab (debug lab), ?view=cards (card review), ?view=sounds (sound editor)
 export default function App() {
   const view = new URLSearchParams(location.search).get('view');
   if (view === 'bugs') return <BugList />;
   if (view === 'lab') return <Suspense fallback={null}><Lab /></Suspense>;
   if (view === 'cards') return <CardReview />;
+  if (view === 'sounds') return <Suspense fallback={null}><SoundEditor /></Suspense>;
   return <Main />;
 }
 

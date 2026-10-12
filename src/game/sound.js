@@ -1,28 +1,21 @@
-// Sound: every effect is synthesized with Web Audio for now (no files needed). To use real recordings later, drop
-// mp3s in public/sfx/ and list them in FILES below: a sound with a file plays the file, the rest stay synthesized.
-// (Clip = [file, start s, length s, volume, fade-out s]; several clips = one picked at random. See public/sfx/README.md.)
+// Sound: the owner's recordings (public/sfx/*.mp3, set up in src/data/sounds.json / the sound editor) where there are
+// any; everything else is synthesized with Web Audio. See public/sfx/README.md.
 import { settings } from './prefs';
 
-const FILES = {
-  order66: [['order66', 0, 6.56, 1, 0.4]],
-  // Ahsoka moves: one of the owner's three saber clips at random (leading silence trimmed)
-  saber: [['saber-a', 0.06, 0.75, 1, 0.15], ['saber-b', 0.07, 0.85, 1, 0.15], ['saber-c', 0, 0.8, 1, 0.15]],
-  // a character is killed: one of the owner's three blasters at random (these are ~2× louder than the sabers: levelled down)
-  // a big haul (3+ cards in one move): one of the owner's two voice lines at random (quiet recordings: boosted)
-  bighaul: [['haul-a', 0, 2.49, 2.2, 0.2], ['haul-b', 0.06, 0.85, 3.4, 0.12]],
-  // encounter voice lines (enc-<id>), played as that encounter's hologram card appears; add more the same way
-  'enc-droids': [['enc-droids', 0, 0.9, 1, 0.1]],
-  // your move: R2-D2 (owner's clip; hot recording, levelled down)
-  turn: [['turn', 0.01, 0.8, 0.5, 0.1]],
-  // the end: the loser's scream (owner's clip), whoever won
-  lose: [['lose', 0, 4.26, 1, 0.4]],
-  // Satine switches two cards (owner's clip; loud, so levelled down)
-  swap: [['swap', 0.03, 1.5, 0.55, 0.2]],
-  kill: [['kill-a', 0, 0.78, 0.5, 0.12], ['kill-b', 0.21, 0.9, 0.5, 0.15], ['kill-c', 0, 1.3, 0.5, 0.3]], // owner's clip: plays as the camera lands on the Galaxy after the crawl
-  // saber: [['saber-swing', 0, 1.2, 1, 0.2]],
-};
+// The clips for each sound live in src/data/sounds.json ({ name: [{ file, start, len, vol, fade }] }, one picked at random).
+// The sound editor (/?view=sounds) can save changes to the server (/api/sounds); those override the JSON for everyone
+// as soon as the page loads (loadSoundOverrides in main.jsx). "Copy for Claude" there gives the JSON to bake in.
+import BUILTIN from '../data/sounds.json';
+let FILES = { ...BUILTIN };
+export const builtinSounds = () => BUILTIN;
+export const soundConfig = () => FILES;
+export const hasSound = (name) => !!FILES[name]?.length;
+export function setSoundConfig(map) { FILES = { ...BUILTIN, ...map }; }
+export async function loadSoundOverrides() {
+  try { const r = await fetch('/api/sounds'); if (!r.ok) return; const j = await r.json(); if (j?.sounds) setSoundConfig(j.sounds); } catch { /* the built-in clips */ }
+}
 // mixer channels (Settings → Sound)
-const CHANNEL = { crawl: 'music', order66: 'music', saber: 'saber', swap: 'saber', hum: 'saber', take: 'fx', kill: 'fx', banner: 'fx', encounter: 'fx', turn: 'fx', deal: 'fx', click: 'fx', lose: 'fx', win: 'music', hyper: 'music' };
+const CHANNEL = { bighaul: 'fx', crawl: 'music', order66: 'music', saber: 'saber', swap: 'saber', hum: 'saber', take: 'fx', kill: 'fx', banner: 'fx', encounter: 'fx', turn: 'fx', deal: 'fx', click: 'fx', lose: 'fx', win: 'music', hyper: 'music' };
 const level = (name) => settings().mix[CHANNEL[name] ?? 'fx'] ?? 1;
 
 let ctx = null;
@@ -54,15 +47,28 @@ export function setMuted(v) {
 const buffers = {};
 const load = (file) => (buffers[file] ??= fetch(`/sfx/${file}.mp3`).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)).catch(() => null));
 async function playFile(clips, mix) {
-  const [file, start, len, vol = 1, fade = 0.12] = clips[Math.floor(Math.random() * clips.length)];
-  const buf = await load(file); if (!buf) return false;
-  const src = ctx.createBufferSource(), gain = ctx.createGain();
-  src.buffer = buf; gain.gain.value = vol * 0.8 * mix;
-  gain.gain.setValueAtTime(vol * 0.8 * mix, ctx.currentTime + Math.max(0, len - fade));
-  gain.gain.linearRampToValueAtTime(0, ctx.currentTime + len);
-  src.connect(gain).connect(out()); src.start(0, start, len);
-  return true;
+  const c = clips[Math.floor(Math.random() * clips.length)];
+  return !!(await playClip(c, mix));
 }
+// one clip { file, start, len, vol, fade } at a mixer level → { stop() } (null if the file can't load). The editor uses it too.
+export async function playClip({ file, start = 0, len, vol = 1, fade = 0.12 }, mix = 1) {
+  if (muted || typeof window === 'undefined') return null;
+  wakeCtx();
+  const buf = await load(file); if (!buf) return null;
+  const l = Math.max(0.05, Math.min(len ?? buf.duration - start, buf.duration - start)), f = Math.min(fade, l / 2);
+  const src = ctx.createBufferSource(), gain = ctx.createGain(), t = ctx.currentTime;
+  src.buffer = buf; gain.gain.setValueAtTime(vol * 0.8 * mix, t);
+  gain.gain.setValueAtTime(vol * 0.8 * mix, t + Math.max(0, l - f));
+  gain.gain.linearRampToValueAtTime(0, t + l);
+  src.connect(gain).connect(out());
+  src.start(0, start, l);
+  return { stop() { try { src.stop(); } catch { /* done */ } }, t0: t };
+}
+// for the editor: the decoded file, and the audio clock
+export function decodeFile(file) { wakeCtx(); return load(file); }
+// warm the cache for some sounds' files (big encounter voice files: so the line isn't late the first time)
+export function preloadSounds(names) { try { wakeCtx(); for (const n of names) for (const c of FILES[n] ?? []) load(c.file); } catch { /* optional */ } }
+export function audioNow() { return ctx?.currentTime ?? 0; }
 
 // ---------- synth kit ----------
 function noiseBuf(sec) { const sr = ctx.sampleRate, b = ctx.createBuffer(1, Math.floor(sr * sec), sr), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return b; }
@@ -142,7 +148,8 @@ export async function play(name, opts = {}) {
   const mix = level(name); if (mix <= 0) return;
   try {
     wakeCtx();
-    if (FILES[name] && await playFile(FILES[name], mix)) return;
+    if (FILES[name]?.length && await playFile(FILES[name], mix)) return;
+    if (FILES[name] && !SYNTH[name]) return;
     const g = ctx.createGain(); g.gain.value = mix; g.connect(out());
     SYNTH[name]?.(g, ctx.currentTime + 0.01, opts);
   } catch { /* audio is optional */ }

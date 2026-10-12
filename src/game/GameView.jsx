@@ -7,7 +7,7 @@ import { DIR, DIRS, countFor, galaxyCount } from './rules';
 import { MOVE_MS, READ_MS } from './engine';
 import { levelName, Toggle, useConfirm, CpuIcon, Kbd, canFullscreen, toggleFullscreen, useFullscreen, FullscreenIcon } from './ui';
 import { useSettings, TEXT_ZOOM, playerColor } from './prefs';
-import { isMuted, setMuted, play } from './sound';
+import { isMuted, setMuted, play, preloadSounds } from './sound';
 import { usePhone, PhoneNav, Sheet, useWakeLock, useLockPage } from './Phone';
 import SettingsDrawer from './Settings';
 import BugReport from './BugReport';
@@ -58,6 +58,8 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
   const timers = useRef([]);
   const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.current.push(t); return t; };
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  // the face-up encounters' voice lines (some are long files) load in the background once the game is going
+  useEffect(() => { const t = setTimeout(() => state && preloadSounds(state.row.map((id) => `enc-${id}`)), 8000); return () => clearTimeout(t); }, [game]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const k = (e) => keys.current?.(e); window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, []);
 
   // a new Game (undo / resume): everything already in its log counts as seen
@@ -128,7 +130,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
   const [pan, setPan] = useState(0); // ms of the pan running now (0 = none)
   const startPan = (ms) => {
     setPan(ms);
-    if (!prefs.calm) later(() => { setDealing(true); later(() => setDealing(false), 1700); }, ms * 0.72);
+    if (!prefs.calm) later(() => { setDealing(true); play('deal'); later(() => setDealing(false), 1700); }, ms * 0.72);
     later(() => setPan(0), ms + 50);
   };
   // panned = the crawl ended with the tilt down (the deal already ran during it)
@@ -144,7 +146,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
       return;
     }
     holdMusic(false);
-    if (!prefs.calm) { setDealing(true); later(() => setDealing(false), 1700); }
+    if (!prefs.calm) { setDealing(true); play('deal'); later(() => setDealing(false), 1700); }
     later(() => start?.(), prefs.calm ? 0 : 1400);
   };
   useEffect(() => { if (!crawl && game && !game.started && !lab) { if (!prefs.crawl || prefs.calm) finishCrawl(); } }, [game]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -175,7 +177,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
     undo = { points, last: lastT ? { req: lastT.req, label: `${state.players[lastT.player]?.name}’s ${lastT.type === 'move' ? 'move' : 'choice'}` } : null,
       onUndo: async (r, label, quick) => {
         if (!quick && !(await confirmIt({ title: 'Go back to here?', body: `The game goes back to ${label}. Everything after it is taken back.`, yes: 'Go back' }))) return;
-        setEncOpen(null); setTab(null); rewind(r);
+        setEncOpen(null); setTab(null); play('undo'); rewind(r);
       } };
   }
   const dismissPlayed = () => { setPlayed(null); game?.skipRead?.(); };

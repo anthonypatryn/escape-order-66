@@ -52,7 +52,7 @@ export default function Home({ onStart, onResume }) {
           <button onClick={() => setRules('turn')}>How to play</button>
           <button className="primary big" disabled={!valid} onClick={go}>Begin the escape</button>
         </div>
-        <div className="home-links"><a className="home-link" href="/?view=bugs">Bug reports</a><a className="home-link" href="/?view=lab">Debug lab</a><a className="home-link" href="/?view=cards">Card review</a></div>
+        <div className="home-links"><a className="home-link" href="/?view=bugs">Bug reports</a><a className="home-link" href="/?view=lab">Debug lab</a><a className="home-link" href="/?view=sounds">Sound editor</a><a className="home-link" href="/?view=cards">Card review</a></div>
       </div>
       {rules && <RulesDrawer start={rules} keys onClose={() => setRules(false)} />}
     </div>
