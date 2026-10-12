@@ -257,7 +257,13 @@ function TimeInput({ value, onCommit }) {
     if (!m) return null;
     return (m[1] ? Number(m[1]) * 60 : 0) + Number(m[2]);
   };
-  const commit = () => { const t = parse(text); setText(null); if (t != null && Number.isFinite(t)) onCommit(t); };
+  const fresh = useRef(false); // just focused: the click's mouseup must not undo the select-all
+  // Enter with a time that doesn't parse keeps the text (red outline) instead of silently snapping back
+  const commit = (fromEnter) => {
+    const t = parse(text);
+    if (t == null || !Number.isFinite(t)) { if (!fromEnter) setText(null); return false; }
+    setText(null); onCommit(t); return true;
+  };
   const nudge = (d) => { const t = Math.max(0, +(cur.current + d).toFixed(3)); cur.current = t; setText(null); onCommit(t); };
   const hold = (d) => { nudge(d); clearTimeout(rep.current); const go = (ms) => { rep.current = setTimeout(() => { nudge(d); go(Math.max(30, ms * 0.8)); }, ms); }; go(380); };
   const stop = () => clearTimeout(rep.current);
@@ -266,10 +272,11 @@ function TimeInput({ value, onCommit }) {
   return (
     <span className="time-box">
       <input className={`time-in ${text != null && parse(text) == null ? 'bad' : ''}`} inputMode="decimal" value={text ?? fmt(value)}
-        onFocus={(e) => { setText(fmt(value)); requestAnimationFrame(() => e.target.select()); }}
-        onChange={(e) => setText(e.target.value)} onBlur={() => { if (text != null) commit(); }}
+        onFocus={(e) => { fresh.current = true; setText(fmt(value)); const el = e.target; requestAnimationFrame(() => el.select()); }}
+        onMouseUp={(e) => { if (fresh.current) { e.preventDefault(); e.currentTarget.select(); fresh.current = false; } }}
+        onChange={(e) => { fresh.current = false; setText(e.target.value); }} onBlur={() => { if (text != null) commit(false); }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') e.currentTarget.blur();
+          if (e.key === 'Enter') { e.preventDefault(); if (commit(true)) e.currentTarget.blur(); }
           else if (e.key === 'Escape') { setText(null); e.currentTarget.blur(); }
           else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             e.preventDefault();
