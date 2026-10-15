@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Banner, Logo } from './Cards';
-import { FACTION, charArt, CHAR } from '../data/cards';
+import { Banner, Logo, Emblem } from './Cards';
+import { FACTION } from '../data/cards';
 import { playerColor } from './prefs';
-import { play } from './sound';
+import { play, stopSounds } from './sound';
 import { countFor } from './rules';
 
 // The end: each player's banners land one at a time, then the winner is called (with the tiebreak if there was one),
 // then the highlights. Rematch / New game; "See the Galaxy" closes it to look at the final board.
-export default function EndScreen({ state, onNew, onRematch, onBoard, newLabel = 'New game' }) {
+// viewer = the seat this screen plays for (online: your seat; one screen: the only person against a computer), or null
+// (two people on one screen, or only computers)
+export default function EndScreen({ state, onNew, onRematch, onBoard, newLabel = 'New game', viewer = null }) {
   const { rows, winner, tiebreak, stats } = state.results;
   const most = Math.max(...rows.map((r) => r.n));
   const [shown, setShown] = useState(0); // how many banners are on the plaques so far (per row, together)
@@ -15,14 +17,13 @@ export default function EndScreen({ state, onNew, onRematch, onBoard, newLabel =
   useEffect(() => {
     const ts = [];
     for (let i = 1; i <= most; i++) ts.push(setTimeout(() => { setShown(i); play('banner'); }, 600 + i * 520));
-    // the winner is called: the loser's "Nooo!" at once (whoever beat them), then the fanfare under its tail
+    // the winner is called: ONE sound (BUG-3) — the fanfare if you won, the "Nooo!" if you lost (whoever beat you);
+    // two people on one screen hear the fanfare. Leaving the end screen stops it (BUG-5: it ran on into the next game)
     const callAt = 900 + (most + 1) * 520;
-    ts.push(setTimeout(() => { setCalled(true); play('lose'); }, callAt));
-    ts.push(setTimeout(() => play('win'), callAt + 2400));
-    return () => ts.forEach(clearTimeout);
-  }, [most]);
+    ts.push(setTimeout(() => { setCalled(true); play(viewer != null && viewer !== winner ? 'lose' : 'win'); }, callAt));
+    return () => { ts.forEach(clearTimeout); stopSounds(['win', 'lose', 'banner'], 0.5); };
+  }, [most]); // eslint-disable-line react-hooks/exhaustive-deps
   const w = state.players[winner];
-  const best = (pid) => [...state.players[pid].cards].sort((a, b) => FACTION[CHAR[b].faction].size - FACTION[CHAR[a].faction].size)[0];
   const hl = [
     ['Cards taken', stats.taken], ['Biggest single haul', stats.longest], ['Encounters', stats.encounters], ['Characters killed', stats.killed],
   ];
@@ -38,7 +39,7 @@ export default function EndScreen({ state, onNew, onRematch, onBoard, newLabel =
           const win = called && p.id === winner;
           return (
             <div key={p.id} className={`plaque ${win ? 'winner' : ''} ${called && !win ? 'loser' : ''}`} style={{ '--pc': playerColor(p.id) }}>
-              {best(p.id) && <img className="plaque-face" src={charArt(best(p.id))} alt="" />}
+              <span className="plaque-face"><Emblem pid={p.id} size={58} /></span>
               <h2>{p.name}</h2>
               <div className="plaque-n">{Math.min(shown, r.n)}<small>banner{r.n === 1 ? '' : 's'}</small></div>
               <div className="plaque-banners">

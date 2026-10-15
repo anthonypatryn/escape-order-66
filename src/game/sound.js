@@ -50,8 +50,13 @@ export const fileUrl = (file) => (file.startsWith('blob:') ? `/api/sfx?p=${encod
 const load = (file) => (buffers[file] ??= fetch(fileUrl(file)).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)).catch(() => null));
 async function playFile(clips, mix) {
   const c = clips[Math.floor(Math.random() * clips.length)];
-  return !!(await playClip(c, mix));
+  return playClip(c, mix);
 }
+// a gain's sound fades out and ends (stop handles)
+const fadeOut = (gain, fade, then) => {
+  try { const n = ctx.currentTime; gain.gain.cancelScheduledValues(n); gain.gain.setValueAtTime(gain.gain.value, n); gain.gain.linearRampToValueAtTime(0.0001, n + fade); } catch { /* gone */ }
+  setTimeout(() => { try { then?.(); gain.disconnect(); } catch { /* done */ } }, fade * 1000 + 60);
+};
 // one clip { file, start, len, vol, fade } at a mixer level → { stop() } (null if the file can't load). The editor uses it too.
 export async function playClip({ file, start = 0, len, vol = 1, fade = 0.12 }, mix = 1) {
   if (muted || typeof window === 'undefined') return null;
@@ -64,7 +69,7 @@ export async function playClip({ file, start = 0, len, vol = 1, fade = 0.12 }, m
   gain.gain.linearRampToValueAtTime(0, t + l);
   src.connect(gain).connect(out());
   src.start(0, start, l);
-  return { stop() { try { src.stop(); } catch { /* done */ } }, t0: t };
+  return { stop(fade = 0) { if (fade > 0) fadeOut(gain, fade, () => src.stop()); else { try { src.stop(); } catch { /* done */ } } }, t0: t };
 }
 // for the editor: the decoded file, and the audio clock
 export function decodeFile(file) { wakeCtx(); return load(file); }
@@ -145,16 +150,30 @@ const SYNTH = {
   lose(d, t) { [[55, 0], [51, 0.35], [48, 0.7]].forEach(([n, at]) => tone(d, t + at, { type: 'sawtooth', f0: NOTE(n), dur: 0.45, peak: 0.1, a: 0.03, filt: 900 })); },
 };
 
+// play a slot → { stop(fade) } or null. Every sound playing is tracked, so stopSounds() can end them (a long end-of-game
+// clip must not run on into the next game: BUG-5)
+const playing = new Set(); // { name, stop }
 export async function play(name, opts = {}) {
-  if (muted || typeof window === 'undefined') return;
-  const mix = level(name); if (mix <= 0) return;
+  if (muted || typeof window === 'undefined') return null;
+  const mix = level(name); if (mix <= 0) return null;
   try {
     wakeCtx();
-    if (FILES[name]?.length && await playFile(FILES[name], mix)) return;
-    if (FILES[name] && !SYNTH[name]) return;
-    const g = ctx.createGain(); g.gain.value = mix; g.connect(out());
-    SYNTH[name]?.(g, ctx.currentTime + 0.01, opts);
-  } catch { /* audio is optional */ }
+    let h = FILES[name]?.length ? await playFile(FILES[name], mix) : null;
+    if (!h) {
+      if (FILES[name] && !SYNTH[name]) return null;
+      const g = ctx.createGain(); g.gain.value = mix; g.connect(out());
+      SYNTH[name]?.(g, ctx.currentTime + 0.01, opts);
+      h = { stop: (fade = 0.05) => fadeOut(g, fade) };
+    }
+    const entry = { name, stop: h.stop };
+    playing.add(entry);
+    setTimeout(() => playing.delete(entry), 120e3);
+    return entry;
+  } catch { return null; /* audio is optional */ }
+}
+// stop these slots' sounds (or every sound) with a short fade
+export function stopSounds(names = null, fade = 0.4) {
+  for (const e of [...playing]) if (!names || names.includes(e.name)) { e.stop(fade); playing.delete(e); }
 }
 
 // ---------- a piece of music from a file, started at an offset (the opening crawl) ----------

@@ -30,8 +30,8 @@ export const SOUND_GROUPS = [
     ['undo', 'Undo'],
     ['order66', 'After the opening crawl, with the Emperor’s hologram'],
     ['game-over', 'Ahsoka can’t move: the game ends (before the end screen)'],
-    ['lose', 'The end: the loser’s scream as the winner is called'],
-    ['win', 'The end: the fanfare, 2.4 s after the scream', true],
+    ['lose', 'The end: plays instead of the fanfare when YOU lost (whoever beat you)'],
+    ['win', 'The end: the fanfare when you won (or two people on one screen)', true],
   ]],
   ['Encounter voice lines', ENCOUNTERS.map((e) => [`enc-${e.id}`, `${e.name} (as the card appears)`])],
 ];

@@ -343,7 +343,7 @@ export default function GameView({ state, game, answer, start, rewind, seed, onE
       {rules && <RulesDrawer start={rules === true ? 'turn' : rules} keys={!phone} onClose={() => setRules(false)} />}
       {prefsOpen && <SettingsDrawer onClose={() => setPrefsOpen(false)} />}
       {bug && <BugReport onClose={() => setBug(false)} context={{ round: state.turnNo, turn: turnP.name, seed, players: state.players.map((p) => ({ name: p.name, ai: p.ai })), online: online?.role ?? 'local', log: state.log.slice(-15).map((l) => l.text) }} />}
-      {showEnd && state.results && <EndScreen state={state} onNew={onExit} onRematch={online?.role === 'client' ? undefined : onRematch} newLabel={online ? 'Back to the lobby' : 'New game'} onBoard={() => setShowEnd(false)} />}
+      {showEnd && state.results && <EndScreen state={state} viewer={mySeat != null ? (mySeat >= 0 ? mySeat : null) : (state.players.filter((p) => !p.ai).length === 1 ? state.players.find((p) => !p.ai).id : null)} onNew={onExit} onRematch={online?.role === 'client' ? undefined : onRematch} newLabel={online ? 'Back to the lobby' : 'New game'} onBoard={() => setShowEnd(false)} />}
       {!showEnd && state.results && <button className="end-reopen" onClick={() => setShowEnd(true)}>Results</button>}
     </div>
   );

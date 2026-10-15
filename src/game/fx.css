@@ -218,7 +218,8 @@
 .plaque.winner { transform: scale(1.06); box-shadow: inset 0 0 0 2px var(--pc), 0 0 50px color-mix(in srgb, var(--pc) 55%, transparent), 0 20px 40px rgba(0, 0, 0, .5); }
 .plaque.loser { filter: saturate(.6) brightness(.8); animation: nooo 1.1s ease-out; }
 @keyframes nooo { 0% { filter: none; } 8%, 24%, 40% { transform: translateX(-9px) rotate(-1.2deg); } 16%, 32%, 48% { transform: translateX(9px) rotate(1.2deg); } 60% { transform: none; } 100% { filter: saturate(.6) brightness(.8); } }
-.plaque-face { width: 92px; height: 92px; margin: -60px auto 6px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 3px var(--pc), 0 0 24px var(--pc); }
+.plaque-face { width: 92px; height: 92px; margin: -60px auto 6px; border-radius: 50%; display: grid; place-items: center; color: var(--pc); background: radial-gradient(circle at 50% 40%, #16203a, #05070d 75%); box-shadow: 0 0 0 3px var(--pc), 0 0 24px var(--pc); }
+.plaque-face .emblem { filter: drop-shadow(0 0 8px var(--pc)); }
 .plaque h2 { margin: 0; font-size: 26px; color: var(--pc); }
 .plaque-n { font-family: var(--title); font-weight: 900; font-size: 64px; line-height: 1; display: grid; }
 .plaque-n small { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--tx-dim); }
