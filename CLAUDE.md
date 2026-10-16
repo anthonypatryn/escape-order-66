@@ -3,11 +3,11 @@
 Digital version of **Escape Order 66**, the owner's Star Wars reskin of *Game of Thrones: Hand of the King*: move Ahsoka
 around a 6 × 6 Galaxy of character cards, collect factions, hold the most banners when she can't move.
 Web app: Vite 7 + React 19, plain CSS, no 3D (top-down board). GitHub `anthonypatryn/escape-order-66` (branch `main`),
-Vercel project `escape-order-66` (push `main` → deploy) → https://escape-order-66.vercel.app (**private: password gate**).
+Vercel project `escape-order-66` (push `main` → deploy) → https://escape-order-66.vercel.app (open: the owner had the password gate removed 2026-10-16 — it's not shared, they hated typing it; the bug PIN stays).
 
 **Status (2026-10-12):** LIVE and playable. 2 seats, each a person (pass-and-play on one screen, no hand-off screen) or a
 computer (Youngling / Padawan / Jedi Master) — or ONLINE: host a room → 5-letter code / invite link → a friend joins (Long Shot's
-system, see `src/net/room.js`). iPhone home-screen icon (`tools/art.py` → `public/apple-touch-icon.png`, passes the password gate). Friends-only game: the owner
+system, see `src/net/room.js`). iPhone home-screen icon (`tools/art.py` → `public/apple-touch-icon.png`). Friends-only game: the owner
 uses Star Wars art, music and sound clips (their own files). Open items + ideas: `docs/ROADMAP.md`.
 
 ## Working with the owner (same as Long Shot / Guillotine)
@@ -16,12 +16,10 @@ uses Star Wars art, music and sound clips (their own files). Open items + ideas:
 - **Test the way the owner uses it** before saying it works: single clicks (not triple-click / scripted selects), real typing,
   phone widths (owner's iPhone is 440 px wide, Chrome on iOS). Owner called out sloppy testing on 2026-10-12 (the time boxes).
 - Owner tests by playing; files bugs at `/?view=bugs`. When they paste BUG-n and the fix is pushed, mark it fixed
-  (POST `/api/bugs` `{action:'fix', nos:[n], note}` with header `x-bug-pin` — but the site password gate blocks calls from here,
-  so ask the owner to tick them in the bug list). BUG-1 … BUG-5 fixed (1 iPhone music volume, 2 home too wide, 3 both end sounds, 4 end emblems,
-  5 end sound ran on) — not yet marked fixed by the owner.
+  (POST `/api/bugs` `{action:'fix', nos:[n], note}` with header `x-bug-pin`; the PIN is in Claude's memory).
 - Commit + push after each chunk of work. Before committing: `npx oxlint src`, `npx vite build`, `node tools/simulate.mjs 200` (must print `errors: 0`).
-- After a push: `vercel ls escape-order-66` (the CLI is linked + logged in) until the new deployment is Ready — the live HTML is
-  behind the password, so `curl` can't check the JS hash any more. A request can still hit the old deployment for ~1 min.
+- After a push: `vercel ls escape-order-66` (the CLI is linked + logged in) until the new deployment is Ready. A request can still
+  hit the old deployment for ~1 min.
 - Rewriting git history / force-pushing needs the owner's explicit OK.
 - `ART/` = the owner's print files (PDFs, InDesign, Illustrator). Gitignored. `python tools/art.py` makes the web copies in `public/art/`
   (cards, encounters, faction hexes, the logo `logo.ai` → `public/art/logo.svg`).
@@ -77,7 +75,6 @@ The music player pauses for all of it (`music.hold`).
 | `src/game/SoundEditor.jsx`, `lib/sounds.js`, `api/sounds.js` | **Sound editor `/?view=sounds`** (linked from Home): pick a slot; per clip: whole-file waveform + zoom strip (drag edges), Start/End boxes (`TimeInput`: one click selects all, type `1:43.69` or `103.69` + Enter, ▲▼ steppers 0.01 s with hold-to-repeat, ↑/↓ keys, Shift = 0.1 s, invalid → red outline, kept), volume + loudness meter (target −14 dB, Match level), fade, listen with playhead, set start/end at the playhead. **Save (live for everyone)** with BUG_PIN → `/api/sounds` (Upstash `escape-66:sounds` = overrides of sounds.json, loaded by every page on start via `loadSoundOverrides`). **Copy for Claude** → owner pastes JSON → bake it into sounds.json. **⬆ Upload a sound file** (below) |
 | `api/upload.js`, `api/sfx.js` | **Uploads** to the owner's **private** Vercel Blob store `escape-order-66-sounds` (connected with OIDC: env `BLOB_STORE_ID` + `BLOB_WEBHOOK_PUBLIC_KEY`, no read-write token). Editor: `POST /api/upload?check=1 {pin}` first (shows the real reason on failure), then `uploadPresigned` (`@vercel/blob/client`, `access: 'private'`) with `handleUploadPresigned` + `issueSignedToken` on the server (whole-store token: names get a random suffix). GET `/api/upload` = uploaded files for the picker (☁). Playback: `/api/sfx?p=<pathname>` **streams** the file through the site (a redirect to the store's signed link couldn't be read by the browser). Upload names: spaces → dashes. Dev: uploads save into `public/sfx/` (`/api/upload-dev`) |
 | `src/game/sound.js` | `play(slot)`: the slot's clips (sounds.json + editor overrides; `[]` = silent) or the synth kit fallback (take, encounter, banner, click, win). `playClip`, `decodeFile`, `preloadSounds` (face-up encounters' voice lines load 8 s into a game: some files are whole scenes, up to 6.6 MB). `playMusic` (the crawl), `routeMedia` (music player). Sound hooks = `useSounds` in useGame.js: move → saber + take per card + bighaul (3+), kill, swap, encounter + `enc-<id>` voice line, banner / steal / banner-down / lock, last-one, fizzle, extra-turn, ai-turn, game-over; GameView: deal, undo, order66; Extras: turn; EndScreen: lose, win |
-| `middleware.js` | **Private site**: password gate on everything (Vercel env `SITE_PASSWORD`, owner set it 2026-10-12; no var = open). Login page, remembered a year (cookie `eo-pass`); friends' links `?key=PASSWORD` sign in and drop the key from the URL |
 | `src/game/resume.js` | Saved games in localStorage (`eo-saves`), setup + trail + open request; a hosted game also saves `kind: 'host'` + the room (code, seats) → Resume takes the same code back |
 | `src/net/room.js` | **Online** (copied from Long Shot, 2 seats): PeerJS public broker + WebRTC, the host's browser runs the Game. `HostRoom` (peer id `escape66-<code>`; seats host / remote / ai; `first`; `attach(game)` forwards `sanitize(state, seat)` (encounter deck → count, others' question details stripped, last 80 log lines); big messages in parts (`sendMsg`, PeerJS drops ≥16 KB); ping 3 s / 10 s quiet = away; `takeOver(seat)` = computer plays until they're back (their next hello → `game.handBack`), `kick` = for good; spectators when both seats are taken; a reloaded host retries 8× for its old code). `JoinClient` (clientId in localStorage = same seat after a refresh; auto-retries, reconnects when the tab comes back; `dismiss` puts an encounter card away for both). Engine: `takeOver`/`handBack` go in the trail and replay on resume |
 | `src/game/Online.jsx` | HostShell → HostLobby (code, invite link (share sheet on phones), seats, "or a computer", who goes first, swap colours) → HostGame (useGame + `room.attach`, saved every change). ClientShell (connecting / lobby / game / error with Try again). GameView online props: `mySeat` (only that seat's questions are clickable), `online` (room badge, away + "Let the computer play" in the question area and Players panel, Remove), no undo online; a friend's crawl jumps to the short tilt when the host's game is already going (`Crawl skipNow`) |
@@ -88,7 +85,7 @@ The music player pauses for all of it (`music.hold`).
 | `tools/art.py`, `tools/simulate.mjs` | Art pipeline · headless AI games |
 
 ## Vercel setup (all done 2026-10-12)
-Env vars on the project: `SITE_PASSWORD` (gate), `BUG_PIN` (bug list + sound editor + uploads; the owner's PIN is in Claude's
+Env vars on the project: `SITE_PASSWORD` (unused since the gate (`middleware.js`) was removed 2026-10-16; git history has it), `BUG_PIN` (bug list + sound editor + uploads; the owner's PIN is in Claude's
 memory), Upstash `wiw-forstall-kv` connected (`KV_*`, `REDIS_URL`), Blob store `escape-order-66-sounds` (private) connected
 (`BLOB_STORE_ID`, `BLOB_WEBHOOK_PUBLIC_KEY`). This folder is `vercel link`ed (`.vercel/`, `.env.local` with a dev OIDC token;
 both gitignored). Useful: `vercel env ls`, `vercel ls escape-order-66`, `vercel redeploy https://escape-order-66.vercel.app --target production`

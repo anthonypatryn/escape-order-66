@@ -1,6 +1,6 @@
 // Vercel function: /api/sfx?p=<pathname> — plays an uploaded sound from the owner's PRIVATE Blob store by streaming it
 // through the site (same origin: the page can always read it; a redirect to the store's signed link was blocked by the
-// browser). The site itself is behind the password, so only signed-in players get here.
+// browser). Anyone with the site link can play these (the password gate was removed 2026-10-16 at the owner's request).
 import { get } from '@vercel/blob';
 import { Readable } from 'node:stream';
 
